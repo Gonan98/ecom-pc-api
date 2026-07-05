@@ -1,0 +1,22 @@
+package errors
+
+import (
+	"fmt"
+)
+
+type APIError struct {
+	Code    int               `json:"statusCode"`
+	Message string            `json:"message"`
+	Err     map[string]string `json:"error,omitempty"`
+}
+
+func (e APIError) Error() string {
+	return fmt.Sprintf("[%d]: %s", e.Code, e.Message)
+}
+
+func NewAPIError(code int, err error) APIError {
+	return APIError{
+		Code:    code,
+		Message: err.Error(),
+	}
+}
