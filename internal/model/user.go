@@ -1,13 +1,16 @@
 package model
 
+import "time"
+
 type User struct {
-	ID        int
-	FirstName string
-	LastName  string
-	Email     string
-	Password  string
-	IsActive  bool
-	RoleID    int
+	ID           int       `json:"id"`
+	RoleID       int       `json:"roleId"`
+	FirstName    string    `json:"firstName"`
+	LastName     string    `json:"lastName"`
+	Email        string    `json:"email"`
+	PasswordHash string    `json:"password,omitempty"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 type CreateUserRequest struct {

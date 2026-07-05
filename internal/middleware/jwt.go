@@ -4,50 +4,57 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
+	"strings"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/gonan98/ecom-pc-api/internal/auth"
 	"github.com/gonan98/ecom-pc-api/internal/errors"
 	"github.com/gonan98/ecom-pc-api/internal/util"
 )
 
-func JWTMiddleware(apiHandler util.APIHandler) util.APIHandler {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		tokenString := getTokenFromRequest(r)
-		token, err := auth.ValidateJWT(tokenString)
+type contextKey string
+
+const userContextKey contextKey = "user"
+
+func JWTMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := getToken(r)
+		claims, err := auth.ValidateJWT(token)
 
 		if err != nil {
-			return errors.NewAPIError(http.StatusUnauthorized, fmt.Errorf("No token provided"))
+			util.WriteError(w, errors.NewAPIError(http.StatusUnauthorized, err))
+			return
 		}
 
-		if !token.Valid {
-			return errors.NewAPIError(http.StatusForbidden, fmt.Errorf("Invalid token"))
-		}
+		ctx := context.WithValue(r.Context(), userContextKey, claims)
 
-		claims := token.Claims.(jwt.MapClaims)
-		sub := claims["sub"].(string)
-		userID, err := strconv.Atoi(sub)
-		if err != nil {
-			return err
-		}
-		role := claims["role"].(string)
-
-		ctx := r.Context()
-		ctx = context.WithValue(ctx, "userID", userID)
-		ctx = context.WithValue(ctx, "role", role)
-		r = r.WithContext(ctx)
-
-		return apiHandler(w, r)
-	}
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
-func getTokenFromRequest(r *http.Request) string {
-	token := r.Header.Get("Authorization")
+func getToken(r *http.Request) string {
+	header := r.Header.Get("Authorization")
 
-	if token != "" {
-		return token
+	if header == "" {
+		return ""
 	}
 
-	return ""
+	bearerToken := strings.Split(header, " ")
+	if len(bearerToken) != 2 {
+		return ""
+	}
+
+	if bearerToken[0] != "Bearer" {
+		return ""
+	}
+
+	return bearerToken[1]
+}
+
+func GetUserClaims(ctx context.Context) (*auth.UserClaims, error) {
+	claims, ok := ctx.Value(userContextKey).(*auth.UserClaims)
+	if !ok {
+		return nil, fmt.Errorf("User claims not found")
+	}
+
+	return claims, nil
 }

@@ -3,12 +3,18 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gonan98/ecom-pc-api/internal/auth"
 	"github.com/gonan98/ecom-pc-api/internal/errors"
+	"github.com/gonan98/ecom-pc-api/internal/middleware"
 	"github.com/gonan98/ecom-pc-api/internal/model"
 	"github.com/gonan98/ecom-pc-api/internal/store"
+)
+
+var (
+	errInvalidEmailOrPassword = errors.NewAPIError(http.StatusBadRequest, fmt.Errorf("Invalid email or password"))
 )
 
 type AuthService struct {
@@ -29,7 +35,7 @@ func (s *AuthService) Register(ctx context.Context, user model.User) error {
 		return fmt.Errorf("Role customer does not exist")
 	}
 
-	ok, err := s.userStore.ExistsUserByEmail(ctx, user.Email)
+	ok, err := s.userStore.ExistByEmail(ctx, user.Email)
 	if err != nil {
 		return err
 	}
@@ -38,24 +44,26 @@ func (s *AuthService) Register(ctx context.Context, user model.User) error {
 		return errors.NewAPIError(http.StatusBadRequest, fmt.Errorf("Email is already registered"))
 	}
 
-	hashedPassword, err := auth.HashPassword(user.Password)
+	hashedPassword, err := auth.HashPassword(user.PasswordHash)
 	if err != nil {
 		return err
 	}
 
-	user.Password = hashedPassword
+	user.PasswordHash = hashedPassword
 
 	return s.userStore.Create(ctx, user, roleID)
 }
 
 func (s *AuthService) Login(ctx context.Context, email, password string) (string, error) {
-	user, err := s.userStore.GetUserByEmail(ctx, email)
+	user, err := s.userStore.GetByEmail(ctx, email)
 	if err != nil {
-		return "", err
+		return "", errInvalidEmailOrPassword
 	}
 
-	if !auth.ComparePasswords(user.Password, []byte(password)) {
-		return "", err
+	log.Printf("User Password: %s \nRequest Password: %s", user.PasswordHash, password)
+
+	if !auth.ComparePasswords(user.PasswordHash, []byte(password)) {
+		return "", errInvalidEmailOrPassword
 	}
 
 	role, err := s.roleStore.GetByID(ctx, user.RoleID)
@@ -71,6 +79,21 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (string
 	return token, nil
 }
 
-func (s *AuthService) GetProfile(ctx context.Context) {
+func (s *AuthService) Profile(ctx context.Context) (*model.User, error) {
+	claims, err := middleware.GetUserClaims(ctx)
+	if err != nil {
+		return nil, err
+	}
 
+	userID, err := claims.UserID()
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.userStore.GetByID(ctx, int(userID))
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }

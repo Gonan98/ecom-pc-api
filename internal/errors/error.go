@@ -20,3 +20,11 @@ func NewAPIError(code int, err error) APIError {
 		Message: err.Error(),
 	}
 }
+
+func NewAPIErrorWithDetail(code int, err error, detail map[string]string) APIError {
+	return APIError{
+		Code:    code,
+		Message: err.Error(),
+		Err:     detail,
+	}
+}
