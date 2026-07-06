@@ -3,45 +3,43 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gonan98/ecom-pc-api/internal/auth"
-	"github.com/gonan98/ecom-pc-api/internal/errors"
 	"github.com/gonan98/ecom-pc-api/internal/middleware"
 	"github.com/gonan98/ecom-pc-api/internal/model"
-	"github.com/gonan98/ecom-pc-api/internal/store"
+	"github.com/gonan98/ecom-pc-api/internal/repository"
 )
 
 var (
-	errInvalidEmailOrPassword = errors.NewAPIError(http.StatusBadRequest, fmt.Errorf("Invalid email or password"))
+	errInvalidEmailOrPassword = model.NewAPIError(http.StatusBadRequest, fmt.Errorf("Invalid email or password"))
 )
 
 type AuthService struct {
-	userStore *store.UserStore
-	roleStore *store.RoleStore
+	userRepo *repository.UserRepository
+	roleRepo *repository.RoleRepository
 }
 
-func NewAuthService(userStore *store.UserStore, roleStore *store.RoleStore) *AuthService {
+func NewAuthService(userRepo *repository.UserRepository, roleRepo *repository.RoleRepository) *AuthService {
 	return &AuthService{
-		userStore: userStore,
-		roleStore: roleStore,
+		userRepo: userRepo,
+		roleRepo: roleRepo,
 	}
 }
 
 func (s *AuthService) Register(ctx context.Context, user model.User) error {
-	roleID, err := s.roleStore.GetCustomerRoleID(ctx)
+	roleID, err := s.roleRepo.GetCustomerRoleID(ctx)
 	if err != nil {
 		return fmt.Errorf("Role customer does not exist")
 	}
 
-	ok, err := s.userStore.ExistByEmail(ctx, user.Email)
+	ok, err := s.userRepo.ExistByEmail(ctx, user.Email)
 	if err != nil {
 		return err
 	}
 
 	if ok {
-		return errors.NewAPIError(http.StatusBadRequest, fmt.Errorf("Email is already registered"))
+		return model.NewAPIError(http.StatusBadRequest, fmt.Errorf("Email is already registered"))
 	}
 
 	hashedPassword, err := auth.HashPassword(user.PasswordHash)
@@ -51,22 +49,20 @@ func (s *AuthService) Register(ctx context.Context, user model.User) error {
 
 	user.PasswordHash = hashedPassword
 
-	return s.userStore.Create(ctx, user, roleID)
+	return s.userRepo.Create(ctx, user, roleID)
 }
 
 func (s *AuthService) Login(ctx context.Context, email, password string) (string, error) {
-	user, err := s.userStore.GetByEmail(ctx, email)
+	user, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
 		return "", errInvalidEmailOrPassword
 	}
-
-	log.Printf("User Password: %s \nRequest Password: %s", user.PasswordHash, password)
 
 	if !auth.ComparePasswords(user.PasswordHash, []byte(password)) {
 		return "", errInvalidEmailOrPassword
 	}
 
-	role, err := s.roleStore.GetByID(ctx, user.RoleID)
+	role, err := s.roleRepo.GetByID(ctx, user.RoleID)
 	if err != nil {
 		return "", err
 	}
@@ -90,7 +86,7 @@ func (s *AuthService) Profile(ctx context.Context) (*model.User, error) {
 		return nil, err
 	}
 
-	user, err := s.userStore.GetByID(ctx, int(userID))
+	user, err := s.userRepo.GetByID(ctx, int(userID))
 	if err != nil {
 		return nil, err
 	}

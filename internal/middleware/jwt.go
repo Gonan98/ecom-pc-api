@@ -2,13 +2,13 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/gonan98/ecom-pc-api/internal/auth"
-	"github.com/gonan98/ecom-pc-api/internal/errors"
-	"github.com/gonan98/ecom-pc-api/internal/util"
+	"github.com/gonan98/ecom-pc-api/internal/model"
 )
 
 type contextKey string
@@ -21,7 +21,7 @@ func JWTMiddleware(next http.Handler) http.Handler {
 		claims, err := auth.ValidateJWT(token)
 
 		if err != nil {
-			util.WriteError(w, errors.NewAPIError(http.StatusUnauthorized, err))
+			writeError(w, model.NewAPIError(http.StatusUnauthorized, err))
 			return
 		}
 
@@ -29,6 +29,12 @@ func JWTMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func writeError(w http.ResponseWriter, err model.APIError) {
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(err.Code)
+	json.NewEncoder(w).Encode(err)
 }
 
 func getToken(r *http.Request) string {

@@ -1,20 +1,17 @@
 package handler
 
 import (
-	// "log"
 	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/gonan98/ecom-pc-api/internal/errors"
 	"github.com/gonan98/ecom-pc-api/internal/middleware"
 	"github.com/gonan98/ecom-pc-api/internal/model"
 	"github.com/gonan98/ecom-pc-api/internal/service"
-	"github.com/gonan98/ecom-pc-api/internal/util"
 )
 
 var (
-	errInvalidJSON = errors.NewAPIError(http.StatusBadRequest, fmt.Errorf("Invalid json structure"))
+	errInvalidJSON = model.NewAPIError(http.StatusBadRequest, fmt.Errorf("Invalid json structure"))
 )
 
 type AuthHandler struct {
@@ -37,12 +34,12 @@ func (h *AuthHandler) Routes(r chi.Router) {
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) error {
 	var req model.CreateUserRequest
 
-	if err := util.ReadJSON(r, &req); err != nil {
+	if err := readJSON(r, &req); err != nil {
 		return errInvalidJSON
 	}
 
 	if err := validate.Struct(req); err != nil {
-		return errors.NewAPIError(http.StatusUnprocessableEntity, err)
+		return model.NewAPIError(http.StatusUnprocessableEntity, err)
 	}
 
 	err := h.service.Register(r.Context(), model.User{
@@ -56,18 +53,18 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return util.WriteJSON(w, http.StatusCreated, map[string]string{"message": "User created"})
+	return writeJSON(w, http.StatusCreated, map[string]string{"message": "User created"})
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
 	var req model.LogUserRequest
 
-	if err := util.ReadJSON(r, &req); err != nil {
+	if err := readJSON(r, &req); err != nil {
 		return errInvalidJSON
 	}
 
 	if err := validate.Struct(req); err != nil {
-		return errors.NewAPIError(http.StatusUnprocessableEntity, err)
+		return model.NewAPIError(http.StatusUnprocessableEntity, err)
 	}
 
 	token, err := h.service.Login(r.Context(), req.Email, req.Password)
@@ -75,7 +72,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return util.WriteJSON(w, http.StatusOK, map[string]string{"accessToken": token})
+	return writeJSON(w, http.StatusOK, map[string]string{"accessToken": token})
 }
 
 func (h *AuthHandler) Profile(w http.ResponseWriter, r *http.Request) error {
@@ -84,5 +81,5 @@ func (h *AuthHandler) Profile(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return util.WriteJSON(w, http.StatusOK, u)
+	return writeJSON(w, http.StatusOK, u)
 }

@@ -1,13 +1,11 @@
-package errors
+package model
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type APIError struct {
 	Code    int               `json:"statusCode"`
 	Message string            `json:"message"`
-	Err     map[string]string `json:"error,omitempty"`
+	Errors  map[string]string `json:"errors,omitempty"`
 }
 
 func (e APIError) Error() string {
@@ -21,10 +19,10 @@ func NewAPIError(code int, err error) APIError {
 	}
 }
 
-func NewAPIErrorWithDetail(code int, err error, detail map[string]string) APIError {
+func NewAPIErrorWithDetail(code int, err error, errors map[string]string) APIError {
 	return APIError{
 		Code:    code,
 		Message: err.Error(),
-		Err:     detail,
+		Errors:  errors,
 	}
 }
