@@ -5,7 +5,6 @@ CREATE TABLE order_details (
     quantity INTEGER NOT NULL,
     unit_price NUMERIC(10,2) NOT NULL,
     discount FLOAT NOT NULL DEFAULT 0.0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     PRIMARY KEY (order_id, product_id),
     FOREIGN KEY (order_id) REFERENCES orders(id),

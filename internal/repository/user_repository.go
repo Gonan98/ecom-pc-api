@@ -28,7 +28,7 @@ func (r *UserRepository) GetByID(ctx context.Context, ID int) (*model.User, erro
 	err := r.db.QueryRow(ctx, query, ID).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.RoleID)
 
 	if err != nil {
-		return nil, fmt.Errorf("UserStore.GetByEmail: %v", err)
+		return nil, fmt.Errorf("UserStore.GetByID: %v", err)
 	}
 
 	return &user, nil

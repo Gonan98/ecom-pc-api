@@ -1,5 +1,5 @@
 -- +goose Up
-INSERT INTO roles (name, description) VALUES ('admin', 'User authorized for create, update, delete resources'), ('customer', 'User authorized for see and buy products');
+INSERT INTO roles (name, description) VALUES ('admin', 'User authorized to create, update, delete resources'), ('customer', 'User authorized to consult and buy products');
 
 INSERT INTO brands (id, name, website) VALUES
 (1, 'AMD', 'https://www.amd.com'),

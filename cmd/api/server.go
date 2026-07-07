@@ -40,8 +40,13 @@ func (s *Server) Run() error {
 	productService := service.NewProductService(productRepo)
 	productHandler := handler.NewProductHandler(productService)
 
+	cartRepo := repository.NewShoppingCartRepository(s.db)
+	cartService := service.NewShoppingCartService(cartRepo)
+	cartHandler := handler.NewShoppingCartHandler(cartService)
+
 	r.Route("/auth", authHandler.Routes)
 	r.Route("/products", productHandler.Routes)
+	r.Route("/cart", cartHandler.Routes)
 
 	log.Println("Server running on port", s.addr)
 	return http.ListenAndServe(s.addr, r)

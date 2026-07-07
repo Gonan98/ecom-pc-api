@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type Role struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
@@ -36,4 +38,31 @@ type Product struct {
 	ImageUrl    string  `json:"imageUrl"`
 	Price       float64 `json:"price"`
 	Stock       float64 `json:"stock"`
+}
+
+type Order struct {
+	ID        int       `json:"id"`
+	UserID    int       `json:"userId"`
+	Status    string    `json:"status"`
+	Total     float64   `json:"total"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type OrderDetail struct {
+	OrderID   int     `json:"orderId"`
+	ProductID int     `json:"productId"`
+	Quantity  int     `json:"quantity"`
+	UnitPrice float64 `json:"unitPrice"`
+	Discount  float64 `json:"discount"`
+}
+
+type ShoppingCart struct {
+	ID     int `json:"id"`
+	UserID int `json:"userId"`
+}
+
+type ShoppingCartItem struct {
+	CartID    int `json:"cartId"`
+	ProductID int `json:"productId"`
+	Quantity  int `json:"quantity"`
 }
