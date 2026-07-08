@@ -18,12 +18,14 @@ var (
 type AuthService struct {
 	userRepo *repository.UserRepository
 	roleRepo *repository.RoleRepository
+	cartRepo *repository.CartRepository
 }
 
-func NewAuthService(userRepo *repository.UserRepository, roleRepo *repository.RoleRepository) *AuthService {
+func NewAuthService(userRepo *repository.UserRepository, roleRepo *repository.RoleRepository, cartRepo *repository.CartRepository) *AuthService {
 	return &AuthService{
 		userRepo: userRepo,
 		roleRepo: roleRepo,
+		cartRepo: cartRepo,
 	}
 }
 
@@ -46,10 +48,18 @@ func (s *AuthService) Register(ctx context.Context, user model.User) error {
 	if err != nil {
 		return err
 	}
-
 	user.PasswordHash = hashedPassword
 
-	return s.userRepo.Create(ctx, user, roleID)
+	userID, err := s.userRepo.Create(ctx, user, roleID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.cartRepo.Create(ctx, userID); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *AuthService) Login(ctx context.Context, email, password string) (string, error) {
@@ -76,16 +86,6 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (string
 }
 
 func (s *AuthService) Profile(ctx context.Context) (*model.User, error) {
-	// claims, err := middleware.GetUserClaims(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// userID, err := claims.UserID()
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	userID, err := extractUserIDFromClaims(ctx)
 	if err != nil {
 		return nil, err

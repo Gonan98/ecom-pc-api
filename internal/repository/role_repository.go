@@ -30,13 +30,8 @@ func (r *RoleRepository) GetByID(ctx context.Context, ID int) (*model.Role, erro
 	return &role, nil
 }
 
-func (r *RoleRepository) GetCustomerRoleID(ctx context.Context) (int64, error) {
-	var customerId int64
-	err := r.db.QueryRow(ctx, "SELECT id FROM roles WHERE name = $1", "customer").Scan(&customerId)
-
-	if err != nil {
-		return 0, err
-	}
-
-	return customerId, nil
+func (r *RoleRepository) GetCustomerRoleID(ctx context.Context) (int, error) {
+	customerID := 0
+	err := r.db.QueryRow(ctx, "SELECT id FROM roles WHERE name = $1", "customer").Scan(&customerID)
+	return customerID, err
 }

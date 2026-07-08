@@ -18,16 +18,10 @@ func NewCartRepository(db *pgxpool.Pool) *CartRepository {
 	}
 }
 
-func (r *CartRepository) Create(ctx context.Context, userID int) (int, error) {
-	var cartID int
-	q := "INSERT INTO shopping_carts (user_id) VALUES ($1) RETURING id"
-	err := r.db.QueryRow(ctx, q, userID).Scan(&cartID)
-
-	if err != nil {
-		return 0, err
-	}
-
-	return cartID, nil
+func (r *CartRepository) Create(ctx context.Context, userID int) error {
+	q := "INSERT INTO shopping_carts (user_id) VALUES ($1)"
+	_, err := r.db.Exec(ctx, q, userID)
+	return err
 }
 
 func (r *CartRepository) CreateItem(ctx context.Context, item *model.CartItem) error {
@@ -71,6 +65,30 @@ func (r *CartRepository) GetCartItems(ctx context.Context, userID int) ([]model.
 	}
 
 	return items, nil
+}
+
+func (r *CartRepository) ExistsItemsInCart(ctx context.Context, cartID int) (bool, error) {
+	result := false
+	q := "SELECT EXISTS (SELECT 1 FROM shopping_cart_items WHERE cart_id = $1)"
+	err := r.db.QueryRow(ctx, q, cartID).Scan(&result)
+
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
+func (r *CartRepository) ExistsItemInCartByProductID(ctx context.Context, cartID int, productID int) (bool, error) {
+	result := false
+	q := "SELECT EXISTS (SELECT 1 FROM shopping_cart_items WHERE cart_id = $1 AND product_id = $2)"
+	err := r.db.QueryRow(ctx, q, cartID, productID).Scan(&result)
+
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
 }
 
 func (r *CartRepository) DeleteCartItems(ctx context.Context, cartID int) error {

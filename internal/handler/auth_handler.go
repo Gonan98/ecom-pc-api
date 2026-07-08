@@ -25,10 +25,10 @@ func NewAuthHandler(service *service.AuthService) *AuthHandler {
 }
 
 func (h *AuthHandler) Routes(r chi.Router) {
-	r.Post("/register", HttpHandler(h.Register))
-	r.Post("/login", HttpHandler(h.Login))
+	r.Post("/register", httpHandler(h.Register))
+	r.Post("/login", httpHandler(h.Login))
 
-	r.With(middleware.JWTMiddleware).Get("/profile", HttpHandler(h.Profile))
+	r.With(middleware.JWTMiddleware).Get("/profile", httpHandler(h.Profile))
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) error {

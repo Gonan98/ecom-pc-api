@@ -20,8 +20,8 @@ func NewProductHandler(service *service.ProductService) *ProductHandler {
 }
 
 func (h *ProductHandler) Routes(r chi.Router) {
-	r.Get("/", HttpHandler(h.GetAll))
-	r.Get("/{id}", HttpHandler(h.GetByID))
+	r.Get("/", httpHandler(h.GetAll))
+	r.Get("/{id}", httpHandler(h.GetByID))
 }
 
 func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) error {

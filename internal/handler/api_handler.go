@@ -13,7 +13,7 @@ var validate = validator.New(validator.WithRequiredStructEnabled())
 
 type APIHandler func(http.ResponseWriter, *http.Request) error
 
-func HttpHandler(h APIHandler) http.HandlerFunc {
+func httpHandler(h APIHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := h(w, r); err != nil {
 			if apiError, ok := err.(model.APIError); ok {

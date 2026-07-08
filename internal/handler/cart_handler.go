@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gonan98/ecom-pc-api/internal/middleware"
@@ -20,8 +22,10 @@ func NewCartHandler(cartService *service.CartService) *CartHandler {
 }
 
 func (h *CartHandler) Routes(r chi.Router) {
-	r.With(middleware.JWTMiddleware).Get("/", HttpHandler(h.getCart))
-	r.With(middleware.JWTMiddleware).Post("/items", HttpHandler(h.addItem))
+	r.With(middleware.JWTMiddleware).Get("/", httpHandler(h.getCart))
+	r.With(middleware.JWTMiddleware).Post("/items", httpHandler(h.addItem))
+	r.With(middleware.JWTMiddleware).Delete("/items", httpHandler(h.deleteAllItems))
+	r.With(middleware.JWTMiddleware).Delete("/items/{productID}", httpHandler(h.deleteItemByProductID))
 }
 
 func (h *CartHandler) getCart(w http.ResponseWriter, r *http.Request) error {
@@ -44,7 +48,7 @@ func (h *CartHandler) addItem(w http.ResponseWriter, r *http.Request) error {
 		return model.NewAPIError(http.StatusUnprocessableEntity, err)
 	}
 
-	err := h.cartService.CreateItem(r.Context(), &model.CartItem{
+	err := h.cartService.AddItemToCart(r.Context(), &model.CartItem{
 		ProductID: req.ProductID,
 		Quantity:  req.Quantity,
 	})
@@ -54,4 +58,27 @@ func (h *CartHandler) addItem(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return writeJSON(w, http.StatusCreated, map[string]string{"message": "Item added to the cart"})
+}
+
+func (h *CartHandler) deleteAllItems(w http.ResponseWriter, r *http.Request) error {
+	if err := h.cartService.DeleteCartItems(r.Context()); err != nil {
+		return err
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+func (h *CartHandler) deleteItemByProductID(w http.ResponseWriter, r *http.Request) error {
+	productID, err := strconv.Atoi(chi.URLParam(r, "productID"))
+	if err != nil {
+		return model.NewAPIError(http.StatusBadRequest, fmt.Errorf("productID parameter must be an integer"))
+	}
+
+	if err := h.cartService.DeleteCartItemByProductID(r.Context(), productID); err != nil {
+		return err
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
 }

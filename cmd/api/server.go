@@ -31,17 +31,17 @@ func (s *Server) Run() error {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	cartRepo := repository.NewCartRepository(s.db)
 	roleRepo := repository.NewRoleRepository(s.db)
 	userRepo := repository.NewUserRepository(s.db)
-	authService := service.NewAuthService(userRepo, roleRepo)
-	authHandler := handler.NewAuthHandler(authService)
-
 	productRepo := repository.NewProductRepository(s.db)
-	productService := service.NewProductService(productRepo)
-	productHandler := handler.NewProductHandler(productService)
 
-	cartRepo := repository.NewCartRepository(s.db)
+	authService := service.NewAuthService(userRepo, roleRepo, cartRepo)
+	productService := service.NewProductService(productRepo)
 	cartService := service.NewCartService(cartRepo, productRepo)
+
+	authHandler := handler.NewAuthHandler(authService)
+	productHandler := handler.NewProductHandler(productService)
 	cartHandler := handler.NewCartHandler(cartService)
 
 	r.Route("/auth", authHandler.Routes)
