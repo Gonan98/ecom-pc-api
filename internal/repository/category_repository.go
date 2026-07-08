@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gonan98/ecom-pc-api/internal/model"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -46,7 +47,7 @@ func (r *CategoryRepository) GetByID(ctx context.Context, ID int) (*model.Catego
 	query := "SELECT id, name, description FROM categories WHERE id = $1"
 	err := r.db.QueryRow(ctx, query, ID).Scan(&category.ID, &category.Name, &category.Description)
 
-	if err != nil {
+	if err != nil && err != pgx.ErrNoRows {
 		return nil, fmt.Errorf("Category.GetByID: %v", err)
 	}
 

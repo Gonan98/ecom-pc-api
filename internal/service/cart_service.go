@@ -28,7 +28,7 @@ func NewCartService(cartRepo *repository.CartRepository, productRepo *repository
 
 func (s *CartService) AddItemToCart(ctx context.Context, cartItem *model.CartItem) error {
 
-	userID, err := extractUserIDFromClaims(ctx)
+	userID, _, err := extractUserFromClaims(ctx)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func (s *CartService) AddItemToCart(ctx context.Context, cartItem *model.CartIte
 
 func (s *CartService) GetCart(ctx context.Context) (*model.CartResponse, error) {
 
-	userID, err := extractUserIDFromClaims(ctx)
+	userID, _, err := extractUserFromClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -56,30 +56,30 @@ func (s *CartService) GetCart(ctx context.Context) (*model.CartResponse, error) 
 	}
 
 	var cartResponse model.CartResponse
-	cartResponse.Items = make([]model.CartItemResponse, 0)
 
 	for _, item := range cartItems {
-		var itemResponse model.CartItemResponse
 		product, err := s.productRepo.GetByID(ctx, item.ProductID)
 		if err != nil {
 			return nil, err
 		}
 
-		itemResponse.ProductID = product.ID
-		itemResponse.ProductName = product.Name
-		itemResponse.Quantity = item.Quantity
-		itemResponse.UnitPrice = product.Price
-		itemResponse.Subtotal = float64(item.Quantity) * product.Price
+		itemResp := model.CartItemResponse{
+			ProductID:   product.ID,
+			ProductName: product.Name,
+			Quantity:    item.Quantity,
+			UnitPrice:   product.Price,
+			Subtotal:    float64(item.Quantity) * product.Price,
+		}
 
-		cartResponse.Total += itemResponse.Subtotal
-		cartResponse.Items = append(cartResponse.Items, itemResponse)
+		cartResponse.Total += itemResp.Subtotal
+		cartResponse.Items = append(cartResponse.Items, itemResp)
 	}
 
 	return &cartResponse, nil
 }
 
 func (s *CartService) DeleteCartItems(ctx context.Context) error {
-	userID, err := extractUserIDFromClaims(ctx)
+	userID, _, err := extractUserFromClaims(ctx)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func (s *CartService) DeleteCartItems(ctx context.Context) error {
 }
 
 func (s *CartService) DeleteCartItemByProductID(ctx context.Context, productID int) error {
-	userID, err := extractUserIDFromClaims(ctx)
+	userID, _, err := extractUserFromClaims(ctx)
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (s *CartService) DeleteCartItemByProductID(ctx context.Context, productID i
 }
 
 func (s *CartService) UpdateItemQuantity(ctx context.Context, productID int, quantity int) error {
-	userID, err := extractUserIDFromClaims(ctx)
+	userID, _, err := extractUserFromClaims(ctx)
 	if err != nil {
 		return err
 	}

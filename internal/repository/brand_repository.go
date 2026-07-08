@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gonan98/ecom-pc-api/internal/model"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -46,7 +47,7 @@ func (r *BrandRepository) GetByID(ctx context.Context, ID int) (*model.Brand, er
 	query := "SELECT id, name, website FROM brands WHERE id = $1"
 	err := r.db.QueryRow(ctx, query, ID).Scan(&brand.ID, &brand.Name, &brand.Website)
 
-	if err != nil {
+	if err != nil && err != pgx.ErrNoRows {
 		return nil, fmt.Errorf("Brand.GetByID: %v", err)
 	}
 

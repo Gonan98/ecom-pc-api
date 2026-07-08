@@ -34,18 +34,26 @@ func (s *Server) Run() error {
 	cartRepo := repository.NewCartRepository(s.db)
 	roleRepo := repository.NewRoleRepository(s.db)
 	userRepo := repository.NewUserRepository(s.db)
+	brandRepo := repository.NewBrandRepository(s.db)
+	categoryRepo := repository.NewCategoryRepository(s.db)
 	productRepo := repository.NewProductRepository(s.db)
 
 	authService := service.NewAuthService(userRepo, roleRepo, cartRepo)
+	brandService := service.NewBrandService(brandRepo)
+	categoryService := service.NewCategoryService(categoryRepo)
 	productService := service.NewProductService(productRepo)
 	cartService := service.NewCartService(cartRepo, productRepo)
 
 	authHandler := handler.NewAuthHandler(authService)
+	brandHandler := handler.NewBrandHandler(brandService)
+	categoryHandler := handler.NewCategoryHandler(categoryService)
 	productHandler := handler.NewProductHandler(productService)
 	cartHandler := handler.NewCartHandler(cartService)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/auth", authHandler.Routes)
+		r.Route("/brands", brandHandler.Routes)
+		r.Route("/categories", categoryHandler.Routes)
 		r.Route("/products", productHandler.Routes)
 		r.Route("/cart", cartHandler.Routes)
 	})
