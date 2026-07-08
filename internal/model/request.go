@@ -19,3 +19,8 @@ type UserInfo struct {
 	LastName  string `json:"lastName"`
 	Email     string `json:"email"`
 }
+
+type CartItemRequest struct {
+	ProductID int `json:"productId" validate:"required"`
+	Quantity  int `json:"quantity" validate:"gt=0"`
+}

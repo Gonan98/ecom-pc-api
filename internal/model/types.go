@@ -56,12 +56,12 @@ type OrderDetail struct {
 	Discount  float64 `json:"discount"`
 }
 
-type ShoppingCart struct {
+type Cart struct {
 	ID     int `json:"id"`
 	UserID int `json:"userId"`
 }
 
-type ShoppingCartItem struct {
+type CartItem struct {
 	CartID    int `json:"cartId"`
 	ProductID int `json:"productId"`
 	Quantity  int `json:"quantity"`

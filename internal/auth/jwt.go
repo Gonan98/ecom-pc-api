@@ -15,8 +15,8 @@ type UserClaims struct {
 	jwt.RegisteredClaims
 }
 
-func (u *UserClaims) UserID() (int64, error) {
-	return strconv.ParseInt(u.Subject, 10, 64)
+func (u *UserClaims) UserID() (int, error) {
+	return strconv.Atoi(u.Subject)
 }
 
 func GenerateJWT(userID int, role string) (string, error) {

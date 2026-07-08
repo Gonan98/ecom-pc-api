@@ -76,20 +76,39 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (string
 }
 
 func (s *AuthService) Profile(ctx context.Context) (*model.User, error) {
-	claims, err := middleware.GetUserClaims(ctx)
+	// claims, err := middleware.GetUserClaims(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// userID, err := claims.UserID()
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	userID, err := extractUserIDFromClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	userID, err := claims.UserID()
-	if err != nil {
-		return nil, err
-	}
-
-	user, err := s.userRepo.GetByID(ctx, int(userID))
+	user, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	return user, nil
+}
+
+func extractUserIDFromClaims(ctx context.Context) (int, error) {
+	claims, err := middleware.GetUserClaims(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	userID, err := claims.UserID()
+	if err != nil {
+		return 0, err
+	}
+
+	return userID, err
 }

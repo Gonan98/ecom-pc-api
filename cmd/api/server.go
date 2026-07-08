@@ -40,9 +40,9 @@ func (s *Server) Run() error {
 	productService := service.NewProductService(productRepo)
 	productHandler := handler.NewProductHandler(productService)
 
-	cartRepo := repository.NewShoppingCartRepository(s.db)
-	cartService := service.NewShoppingCartService(cartRepo)
-	cartHandler := handler.NewShoppingCartHandler(cartService)
+	cartRepo := repository.NewCartRepository(s.db)
+	cartService := service.NewCartService(cartRepo, productRepo)
+	cartHandler := handler.NewCartHandler(cartService)
 
 	r.Route("/auth", authHandler.Routes)
 	r.Route("/products", productHandler.Routes)
