@@ -91,6 +91,12 @@ func (r *CartRepository) ExistsItemInCartByProductID(ctx context.Context, cartID
 	return result, nil
 }
 
+func (r *CartRepository) UpdateItemQuantity(ctx context.Context, cartID int, productID int, quantity int) error {
+	q := "UPDATE shopping_cart_items SET quantity = $1 WHERE cart_id = $2 AND product_id = $3"
+	_, err := r.db.Exec(ctx, q, quantity, cartID, productID)
+	return err
+}
+
 func (r *CartRepository) DeleteCartItems(ctx context.Context, cartID int) error {
 	q := "DELETE FROM shopping_cart_items WHERE cart_id = $1"
 	_, err := r.db.Exec(ctx, q, cartID)

@@ -21,7 +21,6 @@ func JWTMiddleware(next http.Handler) http.Handler {
 		claims, err := auth.ValidateJWT(token)
 
 		if err != nil {
-			// writeError(w, model.NewAPIError(http.StatusUnauthorized, err))
 			http.Error(w, err.Error(), http.StatusForbidden)
 			return
 		}
@@ -31,12 +30,6 @@ func JWTMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
-
-// func writeError(w http.ResponseWriter, err model.APIError) {
-// 	w.Header().Add("Content-Type", "application/json")
-// 	w.WriteHeader(err.Code)
-// 	json.NewEncoder(w).Encode(err)
-// }
 
 func getToken(r *http.Request) string {
 	header := r.Header.Get("Authorization")

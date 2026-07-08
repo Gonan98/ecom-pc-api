@@ -24,3 +24,7 @@ type CartItemRequest struct {
 	ProductID int `json:"productId" validate:"required"`
 	Quantity  int `json:"quantity" validate:"gt=0"`
 }
+
+type UpdateCartItemRequest struct {
+	Quantity int `json:"quantity" validate:"gt=0"`
+}

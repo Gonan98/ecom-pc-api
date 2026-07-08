@@ -123,3 +123,26 @@ func (s *CartService) DeleteCartItemByProductID(ctx context.Context, productID i
 
 	return s.cartRepo.DeleteCartItemsByProductID(ctx, cart.ID, productID)
 }
+
+func (s *CartService) UpdateItemQuantity(ctx context.Context, productID int, quantity int) error {
+	userID, err := extractUserIDFromClaims(ctx)
+	if err != nil {
+		return err
+	}
+
+	cart, err := s.cartRepo.GetCart(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	ok, err := s.cartRepo.ExistsItemInCartByProductID(ctx, cart.ID, productID)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return errProductNotFoundInCart
+	}
+
+	return s.cartRepo.UpdateItemQuantity(ctx, cart.ID, productID, quantity)
+}
