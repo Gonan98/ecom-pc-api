@@ -1,5 +1,13 @@
 package model
 
+type UserInfo struct {
+	ID        int    `json:"id"`
+	RoleName  string `json:"role"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email"`
+}
+
 type CartItemResponse struct {
 	ProductID   int     `json:"productId"`
 	ProductName string  `json:"productName"`

@@ -2,13 +2,11 @@ package middleware
 
 import (
 	"context"
-	// "encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/gonan98/ecom-pc-api/internal/auth"
-	// "github.com/gonan98/ecom-pc-api/internal/model"
 )
 
 type contextKey string

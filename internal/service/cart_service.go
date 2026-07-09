@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gonan98/ecom-pc-api/internal/model"
@@ -55,27 +56,7 @@ func (s *CartService) GetCart(ctx context.Context) (*model.CartResponse, error) 
 		return nil, err
 	}
 
-	var cartResponse model.CartResponse
-
-	for _, item := range cartItems {
-		product, err := s.productRepo.GetByID(ctx, item.ProductID)
-		if err != nil {
-			return nil, err
-		}
-
-		itemResp := model.CartItemResponse{
-			ProductID:   product.ID,
-			ProductName: product.Name,
-			Quantity:    item.Quantity,
-			UnitPrice:   product.Price,
-			Subtotal:    float64(item.Quantity) * product.Price,
-		}
-
-		cartResponse.Total += itemResp.Subtotal
-		cartResponse.Items = append(cartResponse.Items, itemResp)
-	}
-
-	return &cartResponse, nil
+	return s.cartToResponse(ctx, cartItems)
 }
 
 func (s *CartService) DeleteCartItems(ctx context.Context) error {
@@ -145,4 +126,28 @@ func (s *CartService) UpdateItemQuantity(ctx context.Context, productID int, qua
 	}
 
 	return s.cartRepo.UpdateItemQuantity(ctx, cart.ID, productID, quantity)
+}
+
+func (s *CartService) cartToResponse(ctx context.Context, cartItems []model.CartItem) (*model.CartResponse, error) {
+	cartResponse := new(model.CartResponse)
+	cartResponse.Items = make([]model.CartItemResponse, 0)
+	for _, item := range cartItems {
+		product, err := s.productRepo.GetByID(ctx, item.ProductID)
+		if err != nil {
+			return nil, model.NewAPIError(http.StatusBadRequest, fmt.Errorf("product %d is not available in the store, please refresh your cart", item.ProductID))
+		}
+
+		itemResp := model.CartItemResponse{
+			ProductID:   product.ID,
+			ProductName: product.Name,
+			Quantity:    item.Quantity,
+			UnitPrice:   product.Price,
+			Subtotal:    float64(item.Quantity) * product.Price,
+		}
+
+		cartResponse.Total += itemResp.Subtotal
+		cartResponse.Items = append(cartResponse.Items, itemResp)
+	}
+
+	return cartResponse, nil
 }

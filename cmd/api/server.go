@@ -37,18 +37,21 @@ func (s *Server) Run() error {
 	brandRepo := repository.NewBrandRepository(s.db)
 	categoryRepo := repository.NewCategoryRepository(s.db)
 	productRepo := repository.NewProductRepository(s.db)
+	orderRepo := repository.NewOrderRepository(s.db)
 
 	authService := service.NewAuthService(userRepo, roleRepo, cartRepo)
 	brandService := service.NewBrandService(brandRepo)
 	categoryService := service.NewCategoryService(categoryRepo)
 	productService := service.NewProductService(productRepo)
 	cartService := service.NewCartService(cartRepo, productRepo)
+	orderService := service.NewOrderService(orderRepo, productRepo, cartRepo)
 
 	authHandler := handler.NewAuthHandler(authService)
 	brandHandler := handler.NewBrandHandler(brandService)
 	categoryHandler := handler.NewCategoryHandler(categoryService)
 	productHandler := handler.NewProductHandler(productService)
 	cartHandler := handler.NewCartHandler(cartService)
+	orderHandler := handler.NewOrderHandler(orderService)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/auth", authHandler.Routes)
@@ -56,6 +59,7 @@ func (s *Server) Run() error {
 		r.Route("/categories", categoryHandler.Routes)
 		r.Route("/products", productHandler.Routes)
 		r.Route("/cart", cartHandler.Routes)
+		r.Route("/orders", orderHandler.Routes)
 	})
 
 	log.Println("Server running on port", s.addr)

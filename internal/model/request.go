@@ -12,14 +12,6 @@ type LogUserRequest struct {
 	Password string `json:"password" validate:"required,min=5,max=16"`
 }
 
-type UserInfo struct {
-	ID        int    `json:"id"`
-	RoleName  string `json:"role"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Email     string `json:"email"`
-}
-
 type CartItemRequest struct {
 	ProductID int `json:"productId" validate:"required"`
 	Quantity  int `json:"quantity" validate:"gt=0"`

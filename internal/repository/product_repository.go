@@ -53,3 +53,15 @@ func (r *ProductRepository) GetByID(ctx context.Context, ID int) (*model.Product
 
 	return &p, nil
 }
+
+func (r *ProductRepository) Update(ctx context.Context, product *model.Product) error {
+	q := "UPDATE products SET category_id = $1, brand_id = $2, name = $3, description = $4, image_url = $5, price = $6, stock = $7, updated_at = CURRENT_TIMESTAMP WHERE id = $8"
+	_, err := r.db.Exec(ctx, q, product.CategoryID, product.BrandID, product.Name, product.Description, product.ImageUrl, product.Price, product.Stock, product.ID)
+	return err
+}
+
+func (r *ProductRepository) UpdateStock(ctx context.Context, productID int, stock int) error {
+	q := "UPDATE products SET stock = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2"
+	_, err := r.db.Exec(ctx, q, stock, productID)
+	return err
+}

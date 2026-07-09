@@ -17,10 +17,11 @@ func NewOrderRepository(db *pgxpool.Pool) *OrderRepository {
 	}
 }
 
-func (r *OrderRepository) Create(ctx context.Context, order *model.Order) error {
-	query := "INSERT INTO order (user_id, total) VALUES ($1, $2)"
-	_, err := r.db.Exec(ctx, query, order.UserID, order.Total)
-	return err
+func (r *OrderRepository) Create(ctx context.Context, order *model.Order) (int, error) {
+	orderID := 0
+	query := "INSERT INTO orders (user_id, total) VALUES ($1, $2) RETURNING id"
+	err := r.db.QueryRow(ctx, query, order.UserID, order.Total).Scan(&orderID)
+	return orderID, err
 }
 
 func (r *OrderRepository) CreateDetail(ctx context.Context, orderDetail *model.OrderDetail) error {
@@ -28,7 +29,3 @@ func (r *OrderRepository) CreateDetail(ctx context.Context, orderDetail *model.O
 	_, err := r.db.Exec(ctx, query, orderDetail.OrderID, orderDetail.ProductID, orderDetail.Quantity, orderDetail.UnitPrice, orderDetail.Discount)
 	return err
 }
-
-// func (r *OrderRepository) GetAll(ctx context.Context) {
-// 	query := "SELECT id, user_id, status,"
-// }
