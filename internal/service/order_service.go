@@ -74,12 +74,9 @@ func (s *OrderService) Create(ctx context.Context) error {
 	}
 
 	for _, item := range cartItems {
-		product, ok := productIDs[item.ProductID]
-		if !ok {
-			return err
-		}
+		product := productIDs[item.ProductID]
 
-		if err = s.orderRepo.CreateDetail(ctx, &model.OrderDetail{
+		if err := s.orderRepo.CreateDetail(ctx, &model.OrderDetail{
 			OrderID:   orderID,
 			ProductID: item.ProductID,
 			Quantity:  item.Quantity,
@@ -97,4 +94,50 @@ func (s *OrderService) Create(ctx context.Context) error {
 	}
 
 	return s.cartRepo.DeleteCartItems(ctx, cart.ID)
+}
+
+func (s *OrderService) GetOrders(ctx context.Context) ([]model.Order, error) {
+
+	userID, _, err := extractUserFromClaims(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.orderRepo.GetOrders(ctx, userID)
+}
+
+func (s *OrderService) GetOrderItems(ctx context.Context, orderID int) ([]model.OrderDetailResponse, error) {
+	userID, _, err := extractUserFromClaims(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	details, err := s.orderRepo.GetOrderDetails(ctx, userID, orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(details) == 0 {
+		return nil, model.NewAPIError(http.StatusNotFound, fmt.Errorf("you don't have an order with ID=%d", orderID))
+	}
+
+	detailsResponse := make([]model.OrderDetailResponse, 0)
+	for _, detail := range details {
+		p, err := s.productRepo.GetByID(ctx, detail.ProductID)
+		if err != nil {
+			return nil, err
+		}
+
+		dr := model.OrderDetailResponse{
+			ProductID:   detail.ProductID,
+			ProductName: p.Name,
+			UnitPrice:   detail.UnitPrice,
+			Quantity:    detail.Quantity,
+			Discount:    detail.Discount,
+		}
+
+		detailsResponse = append(detailsResponse, dr)
+	}
+
+	return detailsResponse, nil
 }

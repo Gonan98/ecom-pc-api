@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -62,7 +61,7 @@ func ValidateJWT(tokenStr string) (*UserClaims, error) {
 	}
 
 	if !token.Valid {
-		return nil, errors.New("Invalid token")
+		return nil, err
 	}
 
 	return claims, err

@@ -20,8 +20,8 @@ func NewRoleRepository(db *pgxpool.Pool) *RoleRepository {
 
 func (r *RoleRepository) GetByID(ctx context.Context, ID int) (*model.Role, error) {
 	var role model.Role
-	query := "SELECT id, name FROM roles WHERE id = $1"
-	err := r.db.QueryRow(ctx, query, ID).Scan(&role.ID, &role.Name)
+	query := "SELECT id, name, description FROM roles WHERE id = $1"
+	err := r.db.QueryRow(ctx, query, ID).Scan(&role.ID, &role.Name, &role.Description)
 
 	if err != nil {
 		return nil, fmt.Errorf("Role.GetByID: %v", err)
