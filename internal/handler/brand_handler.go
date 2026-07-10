@@ -30,7 +30,7 @@ func (h *BrandHandler) GetAll(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return writeJSON(w, http.StatusOK, brands)
+	return write(w, types.APIResponse{Code: http.StatusOK, Data: brands})
 }
 
 func (h *BrandHandler) GetByID(w http.ResponseWriter, r *http.Request) error {
@@ -44,5 +44,5 @@ func (h *BrandHandler) GetByID(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return writeJSON(w, http.StatusOK, brand)
+	return write(w, types.APIResponse{Code: http.StatusOK, Data: brand})
 }

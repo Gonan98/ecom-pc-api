@@ -21,8 +21,8 @@ func NewOrderHandler(orderService *service.OrderService) *OrderHandler {
 }
 
 func (h *OrderHandler) Routes(r chi.Router) {
-	// r.With(middleware.JWTMiddleware).Post("/", httpHandler(h.create))
 	r.Use(middleware.JWTMiddleware)
+
 	r.Post("/", httpHandler(h.create))
 	r.Get("/", httpHandler(h.getOrders))
 	r.Get("/{id}/details", httpHandler(h.getOrderDetails))
@@ -33,9 +33,7 @@ func (h *OrderHandler) create(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return writeJSON(w, http.StatusCreated, map[string]string{
-		"message": "Order created",
-	})
+	return write(w, types.APIResponse{Code: http.StatusCreated, Message: "Order created"})
 }
 
 func (h *OrderHandler) getOrders(w http.ResponseWriter, r *http.Request) error {
@@ -44,7 +42,7 @@ func (h *OrderHandler) getOrders(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return writeJSON(w, http.StatusOK, orders)
+	return write(w, types.APIResponse{Code: http.StatusOK, Data: orders})
 }
 
 func (h *OrderHandler) getOrderDetails(w http.ResponseWriter, r *http.Request) error {
@@ -58,5 +56,5 @@ func (h *OrderHandler) getOrderDetails(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	return writeJSON(w, http.StatusOK, res)
+	return write(w, types.APIResponse{Code: http.StatusOK, Data: res})
 }

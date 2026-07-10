@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gonan98/ecom-pc-api/internal/repository"
+	repo "github.com/gonan98/ecom-pc-api/internal/repository"
 	"github.com/gonan98/ecom-pc-api/internal/types"
 )
 
 type ProductService struct {
-	productRepo *repository.ProductRepository
+	productRepo *repo.ProductRepository
 }
 
-func NewProductService(productRepo *repository.ProductRepository) *ProductService {
+func NewProductService(productRepo *repo.ProductRepository) *ProductService {
 	return &ProductService{
 		productRepo: productRepo,
 	}

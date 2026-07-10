@@ -1,5 +1,11 @@
 package types
 
+type APIResponse struct {
+	Code    int    `json:"statusCode"`
+	Message string `json:"message,omitempty"`
+	Data    any    `json:"data,omitempty"`
+}
+
 type UserInfo struct {
 	ID        int    `json:"id"`
 	RoleName  string `json:"role"`

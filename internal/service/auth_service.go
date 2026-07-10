@@ -8,7 +8,7 @@ import (
 
 	"github.com/gonan98/ecom-pc-api/internal/auth"
 	"github.com/gonan98/ecom-pc-api/internal/database"
-	"github.com/gonan98/ecom-pc-api/internal/repository"
+	repo "github.com/gonan98/ecom-pc-api/internal/repository"
 	"github.com/gonan98/ecom-pc-api/internal/types"
 	"github.com/jackc/pgx/v5"
 )
@@ -19,16 +19,16 @@ var (
 )
 
 type AuthService struct {
-	userRepo  *repository.UserRepository
-	roleRepo  *repository.RoleRepository
-	cartRepo  *repository.CartRepository
+	userRepo  *repo.UserRepository
+	roleRepo  *repo.RoleRepository
+	cartRepo  *repo.CartRepository
 	txManager *database.TxManager
 }
 
 func NewAuthService(
-	userRepo *repository.UserRepository,
-	roleRepo *repository.RoleRepository,
-	cartRepo *repository.CartRepository,
+	userRepo *repo.UserRepository,
+	roleRepo *repo.RoleRepository,
+	cartRepo *repo.CartRepository,
 	txManager *database.TxManager,
 ) *AuthService {
 	return &AuthService{
@@ -78,13 +78,13 @@ func (s *AuthService) Register(ctx context.Context, user types.User) error {
 	})
 }
 
-func (s *AuthService) Login(ctx context.Context, email, password string) (string, error) {
-	user, err := s.userRepo.GetByEmail(ctx, email)
+func (s *AuthService) Login(ctx context.Context, req *types.LogUserRequest) (string, error) {
+	user, err := s.userRepo.GetByEmail(ctx, req.Email)
 	if err != nil {
 		return "", errInvalidEmailOrPassword
 	}
 
-	if !auth.ComparePasswords(user.PasswordHash, []byte(password)) {
+	if !auth.ComparePasswords(user.PasswordHash, []byte(req.Password)) {
 		return "", errInvalidEmailOrPassword
 	}
 

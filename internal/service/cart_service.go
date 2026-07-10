@@ -6,21 +6,22 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gonan98/ecom-pc-api/internal/repository"
+	repo "github.com/gonan98/ecom-pc-api/internal/repository"
 	"github.com/gonan98/ecom-pc-api/internal/types"
 )
 
 var (
 	errCartIsEmpty           = types.NewAPIError(http.StatusBadRequest, errors.New("cart is empty"))
 	errProductNotFoundInCart = types.NewAPIError(http.StatusBadRequest, errors.New("product is not in the cart"))
+	errProductAlreadyInCart  = types.NewAPIError(http.StatusBadRequest, errors.New("that product is already in the cart"))
 )
 
 type CartService struct {
-	cartRepo    *repository.CartRepository
-	productRepo *repository.ProductRepository
+	cartRepo    *repo.CartRepository
+	productRepo *repo.ProductRepository
 }
 
-func NewCartService(cartRepo *repository.CartRepository, productRepo *repository.ProductRepository) *CartService {
+func NewCartService(cartRepo *repo.CartRepository, productRepo *repo.ProductRepository) *CartService {
 	return &CartService{
 		cartRepo:    cartRepo,
 		productRepo: productRepo,
@@ -37,6 +38,15 @@ func (s *CartService) AddItemToCart(ctx context.Context, cartItem *types.CartIte
 	cart, err := s.cartRepo.GetCart(ctx, userID)
 	if err != nil {
 		return err
+	}
+
+	ok, err := s.cartRepo.ExistsItemInCartByProductID(ctx, cart.ID, cartItem.ProductID)
+	if err != nil {
+		return err
+	}
+
+	if ok {
+		return errProductAlreadyInCart
 	}
 
 	cartItem.CartID = cart.ID

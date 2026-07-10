@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gonan98/ecom-pc-api/internal/repository"
+	repo "github.com/gonan98/ecom-pc-api/internal/repository"
 	"github.com/gonan98/ecom-pc-api/internal/types"
 )
 
 type CategoryService struct {
-	categoryRepo *repository.CategoryRepository
+	categoryRepo *repo.CategoryRepository
 }
 
-func NewCategoryService(categoryRepo *repository.CategoryRepository) *CategoryService {
+func NewCategoryService(categoryRepo *repo.CategoryRepository) *CategoryService {
 	return &CategoryService{
 		categoryRepo: categoryRepo,
 	}

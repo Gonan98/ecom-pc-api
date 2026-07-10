@@ -1,17 +1,18 @@
 package handler
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gonan98/ecom-pc-api/internal/middleware"
 	"github.com/gonan98/ecom-pc-api/internal/service"
 	"github.com/gonan98/ecom-pc-api/internal/types"
+	"github.com/gonan98/ecom-pc-api/internal/util"
 )
 
 var (
-	errInvalidJSON = types.NewAPIError(http.StatusBadRequest, fmt.Errorf("Invalid json structure"))
+	errInvalidJSON = types.NewAPIError(http.StatusBadRequest, errors.New("Invalid JSON structure"))
 )
 
 type AuthHandler struct {
@@ -39,7 +40,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if err := validate.Struct(req); err != nil {
-		return types.NewAPIError(http.StatusUnprocessableEntity, err)
+		return util.InvalidRequest(err)
 	}
 
 	err := h.service.Register(r.Context(), types.User{
@@ -53,7 +54,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return writeJSON(w, http.StatusCreated, map[string]string{"message": "User created"})
+	return write(w, types.APIResponse{Code: http.StatusCreated, Message: "User created"})
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
@@ -64,15 +65,15 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if err := validate.Struct(req); err != nil {
-		return types.NewAPIError(http.StatusUnprocessableEntity, err)
+		return util.InvalidRequest(err)
 	}
 
-	token, err := h.service.Login(r.Context(), req.Email, req.Password)
+	token, err := h.service.Login(r.Context(), &req)
 	if err != nil {
 		return err
 	}
 
-	return writeJSON(w, http.StatusOK, map[string]string{"accessToken": token})
+	return write(w, types.APIResponse{Code: http.StatusOK, Message: "Receiving token", Data: token})
 }
 
 func (h *AuthHandler) Profile(w http.ResponseWriter, r *http.Request) error {
@@ -81,5 +82,5 @@ func (h *AuthHandler) Profile(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return writeJSON(w, http.StatusOK, u)
+	return write(w, types.APIResponse{Code: http.StatusOK, Data: u})
 }

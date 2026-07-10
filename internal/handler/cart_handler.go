@@ -9,6 +9,7 @@ import (
 	"github.com/gonan98/ecom-pc-api/internal/middleware"
 	"github.com/gonan98/ecom-pc-api/internal/service"
 	"github.com/gonan98/ecom-pc-api/internal/types"
+	"github.com/gonan98/ecom-pc-api/internal/util"
 )
 
 type CartHandler struct {
@@ -37,7 +38,7 @@ func (h *CartHandler) getCart(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return writeJSON(w, http.StatusOK, cartResponse)
+	return write(w, types.APIResponse{Code: http.StatusOK, Data: cartResponse})
 }
 
 func (h *CartHandler) addItem(w http.ResponseWriter, r *http.Request) error {
@@ -48,7 +49,7 @@ func (h *CartHandler) addItem(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if err := validate.Struct(req); err != nil {
-		return types.NewAPIError(http.StatusUnprocessableEntity, err)
+		return util.InvalidRequest(err)
 	}
 
 	err := h.cartService.AddItemToCart(r.Context(), &types.CartItem{
@@ -60,7 +61,7 @@ func (h *CartHandler) addItem(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return writeJSON(w, http.StatusCreated, map[string]string{"message": "Item added to the cart"})
+	return write(w, types.APIResponse{Code: http.StatusOK, Message: fmt.Sprintf("Product %d added to cart", req.ProductID)})
 }
 
 func (h *CartHandler) deleteAllItems(w http.ResponseWriter, r *http.Request) error {
@@ -99,12 +100,12 @@ func (h *CartHandler) updateItemQuantity(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := validate.Struct(req); err != nil {
-		return types.NewAPIError(http.StatusUnprocessableEntity, err)
+		return util.InvalidRequest(err)
 	}
 
 	if err := h.cartService.UpdateItemQuantity(r.Context(), productID, req.Quantity); err != nil {
 		return err
 	}
 
-	return writeJSON(w, http.StatusCreated, map[string]string{"message": "Updated item quantity"})
+	return write(w, types.APIResponse{Code: http.StatusOK, Message: fmt.Sprintf("Item quantity updated for product %d", productID)})
 }

@@ -30,7 +30,7 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return writeJSON(w, http.StatusOK, cateogries)
+	return write(w, types.APIResponse{Code: http.StatusOK, Data: cateogries})
 }
 
 func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) error {
@@ -44,5 +44,5 @@ func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) error 
 		return err
 	}
 
-	return writeJSON(w, http.StatusOK, category)
+	return write(w, types.APIResponse{Code: http.StatusOK, Data: category})
 }

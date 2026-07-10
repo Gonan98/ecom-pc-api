@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/gonan98/ecom-pc-api/internal/database"
 	"github.com/gonan98/ecom-pc-api/internal/handler"
-	"github.com/gonan98/ecom-pc-api/internal/repository"
+	repo "github.com/gonan98/ecom-pc-api/internal/repository"
 	"github.com/gonan98/ecom-pc-api/internal/service"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -32,13 +32,13 @@ func (s *Server) Run() error {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	cartRepo := repository.NewCartRepository(s.db)
-	roleRepo := repository.NewRoleRepository(s.db)
-	userRepo := repository.NewUserRepository(s.db)
-	brandRepo := repository.NewBrandRepository(s.db)
-	categoryRepo := repository.NewCategoryRepository(s.db)
-	productRepo := repository.NewProductRepository(s.db)
-	orderRepo := repository.NewOrderRepository(s.db)
+	cartRepo := repo.NewCartRepository(s.db)
+	roleRepo := repo.NewRoleRepository(s.db)
+	userRepo := repo.NewUserRepository(s.db)
+	brandRepo := repo.NewBrandRepository(s.db)
+	categoryRepo := repo.NewCategoryRepository(s.db)
+	productRepo := repo.NewProductRepository(s.db)
+	orderRepo := repo.NewOrderRepository(s.db)
 
 	txManager := database.NewTxManager(s.db)
 

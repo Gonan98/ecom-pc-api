@@ -6,22 +6,22 @@ import (
 	"net/http"
 
 	"github.com/gonan98/ecom-pc-api/internal/database"
-	"github.com/gonan98/ecom-pc-api/internal/repository"
+	repo "github.com/gonan98/ecom-pc-api/internal/repository"
 	"github.com/gonan98/ecom-pc-api/internal/types"
 	"github.com/jackc/pgx/v5"
 )
 
 type OrderService struct {
-	orderRepo   *repository.OrderRepository
-	productRepo *repository.ProductRepository
-	cartRepo    *repository.CartRepository
+	orderRepo   *repo.OrderRepository
+	productRepo *repo.ProductRepository
+	cartRepo    *repo.CartRepository
 	txManager   *database.TxManager
 }
 
 func NewOrderService(
-	orderRepo *repository.OrderRepository,
-	productRepo *repository.ProductRepository,
-	cartRepo *repository.CartRepository,
+	orderRepo *repo.OrderRepository,
+	productRepo *repo.ProductRepository,
+	cartRepo *repo.CartRepository,
 	txManager *database.TxManager,
 ) *OrderService {
 	return &OrderService{

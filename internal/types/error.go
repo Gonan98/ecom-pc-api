@@ -8,10 +8,6 @@ type APIError struct {
 	Errors  map[string]string `json:"errors,omitempty"`
 }
 
-func (e APIError) Error() string {
-	return fmt.Sprintf("[%d]: %s", e.Code, e.Message)
-}
-
 func NewAPIError(code int, err error) APIError {
 	return APIError{
 		Code:    code,
@@ -25,4 +21,8 @@ func NewAPIErrorWithDetail(code int, err error, errors map[string]string) APIErr
 		Message: err.Error(),
 		Errors:  errors,
 	}
+}
+
+func (e APIError) Error() string {
+	return fmt.Sprintf("[%d]: %s", e.Code, e.Message)
 }
