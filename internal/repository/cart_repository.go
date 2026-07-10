@@ -3,18 +3,23 @@ package repository
 import (
 	"context"
 
-	"github.com/gonan98/ecom-pc-api/internal/model"
+	"github.com/gonan98/ecom-pc-api/internal/types"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type CartRepository struct {
-	db *pgxpool.Pool
+	db DBTX
 }
 
-func NewCartRepository(db *pgxpool.Pool) *CartRepository {
+func NewCartRepository(db DBTX) *CartRepository {
 	return &CartRepository{
 		db: db,
+	}
+}
+
+func (r *CartRepository) WithTx(tx pgx.Tx) *CartRepository {
+	return &CartRepository{
+		db: tx,
 	}
 }
 
@@ -24,14 +29,14 @@ func (r *CartRepository) Create(ctx context.Context, userID int) error {
 	return err
 }
 
-func (r *CartRepository) CreateItem(ctx context.Context, item *model.CartItem) error {
+func (r *CartRepository) CreateItem(ctx context.Context, item *types.CartItem) error {
 	q := "INSERT INTO shopping_cart_items VALUES ($1, $2, $3)"
 	_, err := r.db.Exec(ctx, q, item.CartID, item.ProductID, item.Quantity)
 	return err
 }
 
-func (r *CartRepository) GetCart(ctx context.Context, userID int) (*model.Cart, error) {
-	var cart model.Cart
+func (r *CartRepository) GetCart(ctx context.Context, userID int) (*types.Cart, error) {
+	var cart types.Cart
 	q := "SELECT id, user_id FROM shopping_carts WHERE user_id = $1"
 	err := r.db.QueryRow(ctx, q, userID).Scan(&cart.ID, &cart.UserID)
 
@@ -42,7 +47,7 @@ func (r *CartRepository) GetCart(ctx context.Context, userID int) (*model.Cart, 
 	return &cart, nil
 }
 
-func (r *CartRepository) GetCartItems(ctx context.Context, userID int) ([]model.CartItem, error) {
+func (r *CartRepository) GetCartItems(ctx context.Context, userID int) ([]types.CartItem, error) {
 	q := "SELECT ci.cart_id, ci.product_id, ci.quantity FROM shopping_cart_items ci JOIN shopping_carts c ON ci.cart_id = c.id WHERE c.user_id = $1"
 	rows, err := r.db.Query(ctx, q, userID)
 	if err != nil {
@@ -50,9 +55,9 @@ func (r *CartRepository) GetCartItems(ctx context.Context, userID int) ([]model.
 	}
 	defer rows.Close()
 
-	items := make([]model.CartItem, 0)
+	items := make([]types.CartItem, 0)
 	for rows.Next() {
-		var item model.CartItem
+		var item types.CartItem
 		if err := rows.Scan(&item.CartID, &item.ProductID, &item.Quantity); err != nil {
 			return nil, err
 		}

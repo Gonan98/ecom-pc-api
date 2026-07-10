@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gonan98/ecom-pc-api/internal/model"
 	"github.com/gonan98/ecom-pc-api/internal/repository"
+	"github.com/gonan98/ecom-pc-api/internal/types"
 )
 
 var (
-	errCartIsEmpty           = model.NewAPIError(http.StatusBadRequest, errors.New("cart is empty"))
-	errProductNotFoundInCart = model.NewAPIError(http.StatusBadRequest, errors.New("product is not in the cart"))
+	errCartIsEmpty           = types.NewAPIError(http.StatusBadRequest, errors.New("cart is empty"))
+	errProductNotFoundInCart = types.NewAPIError(http.StatusBadRequest, errors.New("product is not in the cart"))
 )
 
 type CartService struct {
@@ -27,7 +27,7 @@ func NewCartService(cartRepo *repository.CartRepository, productRepo *repository
 	}
 }
 
-func (s *CartService) AddItemToCart(ctx context.Context, cartItem *model.CartItem) error {
+func (s *CartService) AddItemToCart(ctx context.Context, cartItem *types.CartItem) error {
 
 	userID, _, err := extractUserFromClaims(ctx)
 	if err != nil {
@@ -44,7 +44,7 @@ func (s *CartService) AddItemToCart(ctx context.Context, cartItem *model.CartIte
 	return s.cartRepo.CreateItem(ctx, cartItem)
 }
 
-func (s *CartService) GetCart(ctx context.Context) (*model.CartResponse, error) {
+func (s *CartService) GetCart(ctx context.Context) (*types.CartResponse, error) {
 
 	userID, _, err := extractUserFromClaims(ctx)
 	if err != nil {
@@ -128,16 +128,16 @@ func (s *CartService) UpdateItemQuantity(ctx context.Context, productID int, qua
 	return s.cartRepo.UpdateItemQuantity(ctx, cart.ID, productID, quantity)
 }
 
-func (s *CartService) cartToResponse(ctx context.Context, cartItems []model.CartItem) (*model.CartResponse, error) {
-	cartResponse := new(model.CartResponse)
-	cartResponse.Items = make([]model.CartItemResponse, 0)
+func (s *CartService) cartToResponse(ctx context.Context, cartItems []types.CartItem) (*types.CartResponse, error) {
+	cartResponse := new(types.CartResponse)
+	cartResponse.Items = make([]types.CartItemResponse, 0)
 	for _, item := range cartItems {
 		product, err := s.productRepo.GetByID(ctx, item.ProductID)
 		if err != nil {
-			return nil, model.NewAPIError(http.StatusBadRequest, fmt.Errorf("product %d is not available in the store, please refresh your cart", item.ProductID))
+			return nil, types.NewAPIError(http.StatusBadRequest, fmt.Errorf("product %d is not available in the store, please refresh your cart", item.ProductID))
 		}
 
-		itemResp := model.CartItemResponse{
+		itemResp := types.CartItemResponse{
 			ProductID:   product.ID,
 			ProductName: product.Name,
 			Quantity:    item.Quantity,

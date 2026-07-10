@@ -2,64 +2,80 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/gonan98/ecom-pc-api/internal/auth"
-	"github.com/gonan98/ecom-pc-api/internal/middleware"
-	"github.com/gonan98/ecom-pc-api/internal/model"
+	"github.com/gonan98/ecom-pc-api/internal/database"
 	"github.com/gonan98/ecom-pc-api/internal/repository"
+	"github.com/gonan98/ecom-pc-api/internal/types"
+	"github.com/jackc/pgx/v5"
 )
 
 var (
-	errInvalidEmailOrPassword = model.NewAPIError(http.StatusBadRequest, fmt.Errorf("Invalid email or password"))
+	errInvalidEmailOrPassword = types.NewAPIError(http.StatusBadRequest, errors.New("Invalid email or password"))
+	errEmailAlreadyRegistered = types.NewAPIError(http.StatusBadRequest, errors.New("Email is already registered"))
 )
 
 type AuthService struct {
-	userRepo *repository.UserRepository
-	roleRepo *repository.RoleRepository
-	cartRepo *repository.CartRepository
+	userRepo  *repository.UserRepository
+	roleRepo  *repository.RoleRepository
+	cartRepo  *repository.CartRepository
+	txManager *database.TxManager
 }
 
-func NewAuthService(userRepo *repository.UserRepository, roleRepo *repository.RoleRepository, cartRepo *repository.CartRepository) *AuthService {
+func NewAuthService(
+	userRepo *repository.UserRepository,
+	roleRepo *repository.RoleRepository,
+	cartRepo *repository.CartRepository,
+	txManager *database.TxManager,
+) *AuthService {
 	return &AuthService{
-		userRepo: userRepo,
-		roleRepo: roleRepo,
-		cartRepo: cartRepo,
+		userRepo:  userRepo,
+		roleRepo:  roleRepo,
+		cartRepo:  cartRepo,
+		txManager: txManager,
 	}
 }
 
-func (s *AuthService) Register(ctx context.Context, user model.User) error {
-	roleID, err := s.roleRepo.GetCustomerRoleID(ctx)
-	if err != nil {
-		return fmt.Errorf("Role customer does not exist")
-	}
+func (s *AuthService) Register(ctx context.Context, user types.User) error {
+	return s.txManager.RunInTx(ctx, func(tx pgx.Tx) error {
 
-	ok, err := s.userRepo.ExistByEmail(ctx, user.Email)
-	if err != nil {
-		return err
-	}
+		userTx := s.userRepo.WithTx(tx)
+		cartTx := s.cartRepo.WithTx(tx)
 
-	if ok {
-		return model.NewAPIError(http.StatusBadRequest, fmt.Errorf("Email is already registered"))
-	}
+		roleID, err := s.roleRepo.GetCustomerRoleID(ctx)
+		if err != nil {
+			return fmt.Errorf("Role customer does not exist")
+		}
 
-	hashedPassword, err := auth.HashPassword(user.PasswordHash)
-	if err != nil {
-		return err
-	}
-	user.PasswordHash = hashedPassword
+		ok, err := s.userRepo.ExistByEmail(ctx, user.Email)
+		if err != nil {
+			return err
+		}
 
-	userID, err := s.userRepo.Create(ctx, user, roleID)
-	if err != nil {
-		return err
-	}
+		if ok {
+			return errEmailAlreadyRegistered
+		}
 
-	if err := s.cartRepo.Create(ctx, userID); err != nil {
-		return err
-	}
+		hashedPassword, err := auth.HashPassword(user.PasswordHash)
+		if err != nil {
+			return err
+		}
+		user.PasswordHash = hashedPassword
 
-	return nil
+		userID, err := userTx.Create(ctx, user, roleID)
+		if err != nil {
+			return err
+		}
+
+		if err := cartTx.Create(ctx, userID); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (s *AuthService) Login(ctx context.Context, email, password string) (string, error) {
@@ -85,7 +101,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (string
 	return token, nil
 }
 
-func (s *AuthService) Profile(ctx context.Context) (*model.UserInfo, error) {
+func (s *AuthService) Profile(ctx context.Context) (*types.UserInfo, error) {
 	userID, role, err := extractUserFromClaims(ctx)
 	if err != nil {
 		return nil, err
@@ -96,7 +112,7 @@ func (s *AuthService) Profile(ctx context.Context) (*model.UserInfo, error) {
 		return nil, err
 	}
 
-	userInfo := &model.UserInfo{
+	userInfo := &types.UserInfo{
 		ID:        user.ID,
 		RoleName:  role,
 		FirstName: user.FirstName,
@@ -108,7 +124,7 @@ func (s *AuthService) Profile(ctx context.Context) (*model.UserInfo, error) {
 }
 
 func extractUserFromClaims(ctx context.Context) (int, string, error) {
-	claims, err := middleware.GetUserClaims(ctx)
+	claims, err := auth.GetClaims(ctx)
 	if err != nil {
 		return 0, "", err
 	}

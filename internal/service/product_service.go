@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gonan98/ecom-pc-api/internal/model"
 	"github.com/gonan98/ecom-pc-api/internal/repository"
+	"github.com/gonan98/ecom-pc-api/internal/types"
 )
 
 type ProductService struct {
@@ -19,18 +19,18 @@ func NewProductService(productRepo *repository.ProductRepository) *ProductServic
 	}
 }
 
-func (s *ProductService) GetAll(ctx context.Context) ([]model.Product, error) {
+func (s *ProductService) GetAll(ctx context.Context) ([]types.Product, error) {
 	return s.productRepo.GetAll(ctx)
 }
 
-func (s *ProductService) GetByID(ctx context.Context, ID int) (*model.Product, error) {
+func (s *ProductService) GetByID(ctx context.Context, ID int) (*types.Product, error) {
 	product, err := s.productRepo.GetByID(ctx, ID)
 	if err != nil {
 		return nil, err
 	}
 
 	if product.ID == 0 {
-		return nil, model.NewAPIError(http.StatusNotFound, fmt.Errorf("Product with ID = %d not found", ID))
+		return nil, types.NewAPIError(http.StatusNotFound, fmt.Errorf("Product with ID = %d not found", ID))
 	}
 
 	return product, nil

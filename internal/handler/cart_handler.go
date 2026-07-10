@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gonan98/ecom-pc-api/internal/middleware"
-	"github.com/gonan98/ecom-pc-api/internal/model"
 	"github.com/gonan98/ecom-pc-api/internal/service"
+	"github.com/gonan98/ecom-pc-api/internal/types"
 )
 
 type CartHandler struct {
@@ -22,11 +22,13 @@ func NewCartHandler(cartService *service.CartService) *CartHandler {
 }
 
 func (h *CartHandler) Routes(r chi.Router) {
-	r.With(middleware.JWTMiddleware).Get("/", httpHandler(h.getCart))
-	r.With(middleware.JWTMiddleware).Post("/items", httpHandler(h.addItem))
-	r.With(middleware.JWTMiddleware).Delete("/items", httpHandler(h.deleteAllItems))
-	r.With(middleware.JWTMiddleware).Delete("/items/{productID}", httpHandler(h.deleteItemByProductID))
-	r.With(middleware.JWTMiddleware).Patch("/items/{productID}", httpHandler(h.updateItemQuantity))
+	r.Use(middleware.JWTMiddleware)
+
+	r.Get("/", httpHandler(h.getCart))
+	r.Post("/items", httpHandler(h.addItem))
+	r.Delete("/items", httpHandler(h.deleteAllItems))
+	r.Delete("/items/{productID}", httpHandler(h.deleteItemByProductID))
+	r.Patch("/items/{productID}", httpHandler(h.updateItemQuantity))
 }
 
 func (h *CartHandler) getCart(w http.ResponseWriter, r *http.Request) error {
@@ -39,17 +41,17 @@ func (h *CartHandler) getCart(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *CartHandler) addItem(w http.ResponseWriter, r *http.Request) error {
-	var req model.CartItemRequest
+	var req types.CartItemRequest
 
 	if err := readJSON(r, &req); err != nil {
 		return errInvalidJSON
 	}
 
 	if err := validate.Struct(req); err != nil {
-		return model.NewAPIError(http.StatusUnprocessableEntity, err)
+		return types.NewAPIError(http.StatusUnprocessableEntity, err)
 	}
 
-	err := h.cartService.AddItemToCart(r.Context(), &model.CartItem{
+	err := h.cartService.AddItemToCart(r.Context(), &types.CartItem{
 		ProductID: req.ProductID,
 		Quantity:  req.Quantity,
 	})
@@ -73,7 +75,7 @@ func (h *CartHandler) deleteAllItems(w http.ResponseWriter, r *http.Request) err
 func (h *CartHandler) deleteItemByProductID(w http.ResponseWriter, r *http.Request) error {
 	productID, err := strconv.Atoi(chi.URLParam(r, "productID"))
 	if err != nil {
-		return model.NewAPIError(http.StatusBadRequest, fmt.Errorf("productID parameter must be an integer"))
+		return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("productID parameter must be an integer"))
 	}
 
 	if err := h.cartService.DeleteCartItemByProductID(r.Context(), productID); err != nil {
@@ -87,17 +89,17 @@ func (h *CartHandler) deleteItemByProductID(w http.ResponseWriter, r *http.Reque
 func (h *CartHandler) updateItemQuantity(w http.ResponseWriter, r *http.Request) error {
 	productID, err := strconv.Atoi(chi.URLParam(r, "productID"))
 	if err != nil {
-		return model.NewAPIError(http.StatusBadRequest, fmt.Errorf("productID parameter must be an integer"))
+		return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("productID parameter must be an integer"))
 	}
 
-	var req model.UpdateCartItemRequest
+	var req types.UpdateCartItemRequest
 
 	if err := readJSON(r, &req); err != nil {
 		return errInvalidJSON
 	}
 
 	if err := validate.Struct(req); err != nil {
-		return model.NewAPIError(http.StatusUnprocessableEntity, err)
+		return types.NewAPIError(http.StatusUnprocessableEntity, err)
 	}
 
 	if err := h.cartService.UpdateItemQuantity(r.Context(), productID, req.Quantity); err != nil {

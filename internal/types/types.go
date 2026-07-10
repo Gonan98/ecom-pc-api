@@ -1,4 +1,4 @@
-package model
+package types
 
 import "time"
 
@@ -35,7 +35,7 @@ type Product struct {
 	BrandID     int     `json:"brandId"`
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
-	ImageUrl    string  `json:"imageUrl"`
+	ImageUrl    *string `json:"imageUrl"`
 	Price       float64 `json:"price"`
 	Stock       int     `json:"stock"`
 }

@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gonan98/ecom-pc-api/internal/model"
+	"github.com/gonan98/ecom-pc-api/internal/types"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type CategoryRepository struct {
-	db *pgxpool.Pool
+	db DBTX
 }
 
 func NewCategoryRepository(db *pgxpool.Pool) *CategoryRepository {
@@ -19,16 +19,16 @@ func NewCategoryRepository(db *pgxpool.Pool) *CategoryRepository {
 	}
 }
 
-func (r *CategoryRepository) GetAll(ctx context.Context) ([]model.Category, error) {
+func (r *CategoryRepository) GetAll(ctx context.Context) ([]types.Category, error) {
 	rows, err := r.db.Query(ctx, "SELECT id, name, description FROM categories ORDER BY id")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	categories := make([]model.Category, 0)
+	categories := make([]types.Category, 0)
 	for rows.Next() {
-		var cat model.Category
+		var cat types.Category
 		if err := rows.Scan(&cat.ID, &cat.Name, &cat.Description); err != nil {
 			return nil, err
 		}
@@ -42,8 +42,8 @@ func (r *CategoryRepository) GetAll(ctx context.Context) ([]model.Category, erro
 	return categories, nil
 }
 
-func (r *CategoryRepository) GetByID(ctx context.Context, ID int) (*model.Category, error) {
-	var category model.Category
+func (r *CategoryRepository) GetByID(ctx context.Context, ID int) (*types.Category, error) {
+	var category types.Category
 	query := "SELECT id, name, description FROM categories WHERE id = $1"
 	err := r.db.QueryRow(ctx, query, ID).Scan(&category.ID, &category.Name, &category.Description)
 

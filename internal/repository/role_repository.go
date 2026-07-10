@@ -4,22 +4,21 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gonan98/ecom-pc-api/internal/model"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/gonan98/ecom-pc-api/internal/types"
 )
 
 type RoleRepository struct {
-	db *pgxpool.Pool
+	db DBTX
 }
 
-func NewRoleRepository(db *pgxpool.Pool) *RoleRepository {
+func NewRoleRepository(db DBTX) *RoleRepository {
 	return &RoleRepository{
 		db: db,
 	}
 }
 
-func (r *RoleRepository) GetByID(ctx context.Context, ID int) (*model.Role, error) {
-	var role model.Role
+func (r *RoleRepository) GetByID(ctx context.Context, ID int) (*types.Role, error) {
+	var role types.Role
 	query := "SELECT id, name, description FROM roles WHERE id = $1"
 	err := r.db.QueryRow(ctx, query, ID).Scan(&role.ID, &role.Name, &role.Description)
 

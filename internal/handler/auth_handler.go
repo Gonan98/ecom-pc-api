@@ -6,12 +6,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gonan98/ecom-pc-api/internal/middleware"
-	"github.com/gonan98/ecom-pc-api/internal/model"
 	"github.com/gonan98/ecom-pc-api/internal/service"
+	"github.com/gonan98/ecom-pc-api/internal/types"
 )
 
 var (
-	errInvalidJSON = model.NewAPIError(http.StatusBadRequest, fmt.Errorf("Invalid json structure"))
+	errInvalidJSON = types.NewAPIError(http.StatusBadRequest, fmt.Errorf("Invalid json structure"))
 )
 
 type AuthHandler struct {
@@ -32,17 +32,17 @@ func (h *AuthHandler) Routes(r chi.Router) {
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) error {
-	var req model.CreateUserRequest
+	var req types.CreateUserRequest
 
 	if err := readJSON(r, &req); err != nil {
 		return errInvalidJSON
 	}
 
 	if err := validate.Struct(req); err != nil {
-		return model.NewAPIError(http.StatusUnprocessableEntity, err)
+		return types.NewAPIError(http.StatusUnprocessableEntity, err)
 	}
 
-	err := h.service.Register(r.Context(), model.User{
+	err := h.service.Register(r.Context(), types.User{
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
 		Email:        req.Email,
@@ -57,14 +57,14 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
-	var req model.LogUserRequest
+	var req types.LogUserRequest
 
 	if err := readJSON(r, &req); err != nil {
 		return errInvalidJSON
 	}
 
 	if err := validate.Struct(req); err != nil {
-		return model.NewAPIError(http.StatusUnprocessableEntity, err)
+		return types.NewAPIError(http.StatusUnprocessableEntity, err)
 	}
 
 	token, err := h.service.Login(r.Context(), req.Email, req.Password)

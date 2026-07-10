@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gonan98/ecom-pc-api/internal/middleware"
-	"github.com/gonan98/ecom-pc-api/internal/model"
 	"github.com/gonan98/ecom-pc-api/internal/service"
+	"github.com/gonan98/ecom-pc-api/internal/types"
 )
 
 type OrderHandler struct {
@@ -50,7 +50,7 @@ func (h *OrderHandler) getOrders(w http.ResponseWriter, r *http.Request) error {
 func (h *OrderHandler) getOrderDetails(w http.ResponseWriter, r *http.Request) error {
 	orderID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		return model.NewAPIError(http.StatusBadRequest, err)
+		return types.NewAPIError(http.StatusBadRequest, err)
 	}
 
 	res, err := h.orderService.GetOrderItems(r.Context(), orderID)

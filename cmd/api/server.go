@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gonan98/ecom-pc-api/internal/database"
 	"github.com/gonan98/ecom-pc-api/internal/handler"
 	"github.com/gonan98/ecom-pc-api/internal/repository"
 	"github.com/gonan98/ecom-pc-api/internal/service"
@@ -39,12 +40,14 @@ func (s *Server) Run() error {
 	productRepo := repository.NewProductRepository(s.db)
 	orderRepo := repository.NewOrderRepository(s.db)
 
-	authService := service.NewAuthService(userRepo, roleRepo, cartRepo)
+	txManager := database.NewTxManager(s.db)
+
+	authService := service.NewAuthService(userRepo, roleRepo, cartRepo, txManager)
 	brandService := service.NewBrandService(brandRepo)
 	categoryService := service.NewCategoryService(categoryRepo)
 	productService := service.NewProductService(productRepo)
 	cartService := service.NewCartService(cartRepo, productRepo)
-	orderService := service.NewOrderService(orderRepo, productRepo, cartRepo)
+	orderService := service.NewOrderService(orderRepo, productRepo, cartRepo, txManager)
 
 	authHandler := handler.NewAuthHandler(authService)
 	brandHandler := handler.NewBrandHandler(brandService)

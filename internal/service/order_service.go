@@ -5,98 +5,110 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gonan98/ecom-pc-api/internal/model"
+	"github.com/gonan98/ecom-pc-api/internal/database"
 	"github.com/gonan98/ecom-pc-api/internal/repository"
+	"github.com/gonan98/ecom-pc-api/internal/types"
+	"github.com/jackc/pgx/v5"
 )
 
 type OrderService struct {
 	orderRepo   *repository.OrderRepository
 	productRepo *repository.ProductRepository
 	cartRepo    *repository.CartRepository
+	txManager   *database.TxManager
 }
 
 func NewOrderService(
 	orderRepo *repository.OrderRepository,
 	productRepo *repository.ProductRepository,
 	cartRepo *repository.CartRepository,
+	txManager *database.TxManager,
 ) *OrderService {
 	return &OrderService{
 		orderRepo:   orderRepo,
 		productRepo: productRepo,
 		cartRepo:    cartRepo,
+		txManager:   txManager,
 	}
 }
 
 func (s *OrderService) Create(ctx context.Context) error {
-	userID, _, err := extractUserFromClaims(ctx)
-	if err != nil {
-		return err
-	}
+	return s.txManager.RunInTx(ctx, func(tx pgx.Tx) error {
 
-	cart, err := s.cartRepo.GetCart(ctx, userID)
-	if err != nil {
-		return err
-	}
+		orderTx := s.orderRepo.WithTx(tx)
+		productTx := s.productRepo.WithTx(tx)
+		cartTx := s.cartRepo.WithTx(tx)
 
-	cartItems, err := s.cartRepo.GetCartItems(ctx, userID)
-	if err != nil {
-		return err
-	}
-
-	if len(cartItems) == 0 {
-		return errCartIsEmpty
-	}
-
-	var total float64
-	productIDs := make(map[int]*model.Product)
-
-	for _, item := range cartItems {
-		product, err := s.productRepo.GetByID(ctx, item.ProductID)
+		userID, _, err := extractUserFromClaims(ctx)
 		if err != nil {
 			return err
 		}
 
-		if item.Quantity > product.Stock {
-			return model.NewAPIError(http.StatusBadRequest, fmt.Errorf("Product %s is not available in the quantity requested", product.Name))
+		cart, err := s.cartRepo.GetCart(ctx, userID)
+		if err != nil {
+			return err
 		}
 
-		productIDs[item.ProductID] = product
-		total += product.Price * float64(item.Quantity)
-	}
+		cartItems, err := s.cartRepo.GetCartItems(ctx, userID)
+		if err != nil {
+			return err
+		}
 
-	orderID, err := s.orderRepo.Create(ctx, &model.Order{
-		UserID: userID,
-		Total:  total,
+		if len(cartItems) == 0 {
+			return errCartIsEmpty
+		}
+
+		var total float64
+		productIDs := make(map[int]*types.Product)
+
+		for _, item := range cartItems {
+			product, err := s.productRepo.GetByID(ctx, item.ProductID)
+			if err != nil {
+				return err
+			}
+
+			if item.Quantity > product.Stock {
+				return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("Product %s is not available in the quantity requested", product.Name))
+			}
+
+			productIDs[item.ProductID] = product
+			total += product.Price * float64(item.Quantity)
+		}
+
+		orderID, err := orderTx.Create(ctx, &types.Order{
+			UserID: userID,
+			Total:  total,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		for _, item := range cartItems {
+			product := productIDs[item.ProductID]
+
+			if err := orderTx.CreateDetail(ctx, &types.OrderDetail{
+				OrderID:   orderID,
+				ProductID: item.ProductID,
+				Quantity:  item.Quantity,
+				UnitPrice: product.Price,
+				Discount:  0,
+			}); err != nil {
+				return err
+			}
+
+			product.Stock -= item.Quantity
+
+			if err := productTx.UpdateStock(ctx, item.ProductID, product.Stock); err != nil {
+				return err
+			}
+		}
+
+		return cartTx.DeleteCartItems(ctx, cart.ID)
 	})
-
-	if err != nil {
-		return err
-	}
-
-	for _, item := range cartItems {
-		product := productIDs[item.ProductID]
-
-		if err := s.orderRepo.CreateDetail(ctx, &model.OrderDetail{
-			OrderID:   orderID,
-			ProductID: item.ProductID,
-			Quantity:  item.Quantity,
-			UnitPrice: product.Price,
-			Discount:  0,
-		}); err != nil {
-			return err
-		}
-
-		product.Stock -= item.Quantity
-
-		if err := s.productRepo.UpdateStock(ctx, item.ProductID, product.Stock); err != nil {
-			return err
-		}
-	}
-
-	return s.cartRepo.DeleteCartItems(ctx, cart.ID)
 }
 
-func (s *OrderService) GetOrders(ctx context.Context) ([]model.Order, error) {
+func (s *OrderService) GetOrders(ctx context.Context) ([]types.Order, error) {
 
 	userID, _, err := extractUserFromClaims(ctx)
 	if err != nil {
@@ -106,7 +118,7 @@ func (s *OrderService) GetOrders(ctx context.Context) ([]model.Order, error) {
 	return s.orderRepo.GetOrders(ctx, userID)
 }
 
-func (s *OrderService) GetOrderItems(ctx context.Context, orderID int) ([]model.OrderDetailResponse, error) {
+func (s *OrderService) GetOrderItems(ctx context.Context, orderID int) ([]types.OrderDetailResponse, error) {
 	userID, _, err := extractUserFromClaims(ctx)
 	if err != nil {
 		return nil, err
@@ -118,17 +130,17 @@ func (s *OrderService) GetOrderItems(ctx context.Context, orderID int) ([]model.
 	}
 
 	if len(details) == 0 {
-		return nil, model.NewAPIError(http.StatusNotFound, fmt.Errorf("you don't have an order with ID=%d", orderID))
+		return nil, types.NewAPIError(http.StatusNotFound, fmt.Errorf("you don't have an order with ID=%d", orderID))
 	}
 
-	detailsResponse := make([]model.OrderDetailResponse, 0)
+	detailsResponse := make([]types.OrderDetailResponse, 0)
 	for _, detail := range details {
 		p, err := s.productRepo.GetByID(ctx, detail.ProductID)
 		if err != nil {
 			return nil, err
 		}
 
-		dr := model.OrderDetailResponse{
+		dr := types.OrderDetailResponse{
 			ProductID:   detail.ProductID,
 			ProductName: p.Name,
 			UnitPrice:   detail.UnitPrice,

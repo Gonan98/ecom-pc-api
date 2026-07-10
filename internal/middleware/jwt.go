@@ -2,16 +2,11 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/gonan98/ecom-pc-api/internal/auth"
 )
-
-type contextKey string
-
-const userContextKey contextKey = "user"
 
 func JWTMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -23,7 +18,7 @@ func JWTMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), userContextKey, claims)
+		ctx := context.WithValue(r.Context(), auth.UserContextKey, claims)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -46,13 +41,4 @@ func getToken(r *http.Request) string {
 	}
 
 	return bearerToken[1]
-}
-
-func GetUserClaims(ctx context.Context) (*auth.UserClaims, error) {
-	claims, ok := ctx.Value(userContextKey).(*auth.UserClaims)
-	if !ok {
-		return nil, fmt.Errorf("User claims not found")
-	}
-
-	return claims, nil
 }

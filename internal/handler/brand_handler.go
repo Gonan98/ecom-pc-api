@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/gonan98/ecom-pc-api/internal/model"
 	"github.com/gonan98/ecom-pc-api/internal/service"
+	"github.com/gonan98/ecom-pc-api/internal/types"
 )
 
 type BrandHandler struct {
@@ -36,7 +36,7 @@ func (h *BrandHandler) GetAll(w http.ResponseWriter, r *http.Request) error {
 func (h *BrandHandler) GetByID(w http.ResponseWriter, r *http.Request) error {
 	ID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		return model.NewAPIError(http.StatusBadRequest, err)
+		return types.NewAPIError(http.StatusBadRequest, err)
 	}
 
 	brand, err := h.brandService.GetByID(r.Context(), ID)

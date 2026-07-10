@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"time"
@@ -8,6 +9,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/gonan98/ecom-pc-api/internal/config"
 )
+
+type contextKey string
+
+const UserContextKey contextKey = "user"
 
 type UserClaims struct {
 	Role string `json:"role"`
@@ -65,4 +70,13 @@ func ValidateJWT(tokenStr string) (*UserClaims, error) {
 	}
 
 	return claims, err
+}
+
+func GetClaims(ctx context.Context) (*UserClaims, error) {
+	claims, ok := ctx.Value(UserContextKey).(*UserClaims)
+	if !ok {
+		return nil, fmt.Errorf("User claims not found")
+	}
+
+	return claims, nil
 }

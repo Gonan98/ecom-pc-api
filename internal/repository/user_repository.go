@@ -4,27 +4,33 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gonan98/ecom-pc-api/internal/model"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/gonan98/ecom-pc-api/internal/types"
+	"github.com/jackc/pgx/v5"
 )
 
 type UserRepository struct {
-	db *pgxpool.Pool
+	db DBTX
 }
 
-func NewUserRepository(db *pgxpool.Pool) *UserRepository {
+func NewUserRepository(db DBTX) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) Create(ctx context.Context, user model.User, roleId int) (int, error) {
+func (r *UserRepository) WithTx(tx pgx.Tx) *UserRepository {
+	return &UserRepository{
+		db: tx,
+	}
+}
+
+func (r *UserRepository) Create(ctx context.Context, user types.User, roleId int) (int, error) {
 	userID := 0
 	query := "INSERT INTO users (first_name, last_name, email, password_hash, role_id) VALUES ($1, $2, $3, $4, $5) RETURNING id"
 	err := r.db.QueryRow(ctx, query, user.FirstName, user.LastName, user.Email, user.PasswordHash, roleId).Scan(&userID)
 	return userID, err
 }
 
-func (r *UserRepository) GetByID(ctx context.Context, ID int) (*model.User, error) {
-	var user model.User
+func (r *UserRepository) GetByID(ctx context.Context, ID int) (*types.User, error) {
+	var user types.User
 	query := "SELECT id, first_name, last_name, email, role_id FROM users WHERE id = $1"
 	err := r.db.QueryRow(ctx, query, ID).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.RoleID)
 
@@ -35,8 +41,8 @@ func (r *UserRepository) GetByID(ctx context.Context, ID int) (*model.User, erro
 	return &user, nil
 }
 
-func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*model.User, error) {
-	var user model.User
+func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*types.User, error) {
+	var user types.User
 	query := "SELECT id, email, password_hash, role_id FROM users WHERE email = $1"
 	err := r.db.QueryRow(ctx, query, email).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.RoleID)
 
