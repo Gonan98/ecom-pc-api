@@ -11,6 +11,8 @@ type envConfig struct {
 	DatabaseUrl   string
 	JWTSecret     string
 	JWTExpiration string
+	AdminEmail    string
+	AdminPassword string
 }
 
 func initConfig() envConfig {
@@ -21,6 +23,8 @@ func initConfig() envConfig {
 		DatabaseUrl:   getEnv("DATABASE_URL", "postgres://postgres:MyPostgrespassword@localhost:5432/ecomdb"),
 		JWTSecret:     getEnv("JWT_SECRET", "mysecretpassword"),
 		JWTExpiration: getEnv("JWT_EXPIRATION", "24h"),
+		AdminEmail:    getEnv("ADMIN_EMAIL", "admin@example.com"),
+		AdminPassword: getEnv("ADMIN_PASSWORD", "admin12345"),
 	}
 }
 
