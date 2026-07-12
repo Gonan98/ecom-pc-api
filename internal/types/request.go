@@ -20,3 +20,8 @@ type CartItemRequest struct {
 type UpdateCartItemRequest struct {
 	Quantity int `json:"quantity" validate:"gt=0"`
 }
+
+type CreateBrandRequest struct {
+	Name    string `json:"name" validate:"required"`
+	Website string `json:"website"`
+}

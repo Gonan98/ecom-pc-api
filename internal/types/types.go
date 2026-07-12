@@ -18,9 +18,9 @@ type User struct {
 }
 
 type Brand struct {
-	ID      int    `json:"id"`
-	Name    string `json:"name"`
-	Website string `json:"website"`
+	ID      int     `json:"id"`
+	Name    string  `json:"name"`
+	Website *string `json:"website"`
 }
 
 type Category struct {

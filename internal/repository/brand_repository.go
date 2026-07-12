@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/gonan98/ecom-pc-api/internal/types"
 	"github.com/jackc/pgx/v5"
@@ -51,4 +52,11 @@ func (r *BrandRepository) GetByID(ctx context.Context, ID int) (*types.Brand, er
 	}
 
 	return &brand, nil
+}
+
+func (r *BrandRepository) Create(ctx context.Context, brand *types.Brand) error {
+	log.Printf("INSERT BRAND: %v", brand)
+	query := "INSERT INTO brands (name, website) VALUES ($1, $2)"
+	_, err := r.db.Exec(ctx, query, brand.Name, brand.Website)
+	return err
 }

@@ -40,3 +40,13 @@ func (s *BrandService) GetByID(ctx context.Context, ID int) (*types.Brand, error
 
 	return brand, nil
 }
+
+func (s *BrandService) Create(ctx context.Context, req *types.CreateBrandRequest) error {
+
+	brand := &types.Brand{
+		Name:    req.Name,
+		Website: &req.Website,
+	}
+
+	return s.brandRepo.Create(ctx, brand)
+}

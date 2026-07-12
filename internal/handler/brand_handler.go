@@ -5,8 +5,10 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/gonan98/ecom-pc-api/internal/middleware"
 	"github.com/gonan98/ecom-pc-api/internal/service"
 	"github.com/gonan98/ecom-pc-api/internal/types"
+	"github.com/gonan98/ecom-pc-api/internal/util"
 )
 
 type BrandHandler struct {
@@ -22,6 +24,11 @@ func NewBrandHandler(brandService *service.BrandService) *BrandHandler {
 func (h *BrandHandler) Routes(r chi.Router) {
 	r.Get("/", httpHandler(h.GetAll))
 	r.Get("/{id}", httpHandler(h.GetByID))
+
+	r.With(
+		middleware.JWTMiddleware,
+		middleware.AdminMiddleware,
+	).Post("/", httpHandler(h.create))
 }
 
 func (h *BrandHandler) GetAll(w http.ResponseWriter, r *http.Request) error {
@@ -45,4 +52,22 @@ func (h *BrandHandler) GetByID(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return write(w, types.APIResponse{Code: http.StatusOK, Data: brand})
+}
+
+func (h *BrandHandler) create(w http.ResponseWriter, r *http.Request) error {
+	var req types.CreateBrandRequest
+
+	if err := readJSON(r, &req); err != nil {
+		return errInvalidJSON
+	}
+
+	if err := validate.Struct(req); err != nil {
+		return util.InvalidRequest(err)
+	}
+
+	if err := h.brandService.Create(r.Context(), &req); err != nil {
+		return err
+	}
+
+	return write(w, types.APIResponse{Code: http.StatusOK, Message: "New brand created"})
 }
