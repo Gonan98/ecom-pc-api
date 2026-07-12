@@ -35,3 +35,7 @@ func InvalidRequest(err error) types.APIError {
 
 	return types.NewAPIErrorWithDetail(http.StatusUnprocessableEntity, fmt.Errorf("request has invalid data"), errors)
 }
+
+func InvalidParamID(paramID string) types.APIError {
+	return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("%s must be an integer", paramID))
+}

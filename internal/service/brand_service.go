@@ -50,3 +50,20 @@ func (s *BrandService) Create(ctx context.Context, req *types.CreateBrandRequest
 
 	return s.brandRepo.Create(ctx, brand)
 }
+
+func (s *BrandService) Update(ctx context.Context, brand *types.Brand) error {
+	_, err := s.GetByID(ctx, brand.ID)
+	if err != nil {
+		return err
+	}
+
+	return s.brandRepo.Update(ctx, brand)
+}
+
+func (s *BrandService) Delete(ctx context.Context, ID int) error {
+	if _, err := s.GetByID(ctx, ID); err != nil {
+		return err
+	}
+
+	return s.brandRepo.Delete(ctx, ID)
+}

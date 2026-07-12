@@ -22,16 +22,15 @@ func NewBrandHandler(brandService *service.BrandService) *BrandHandler {
 }
 
 func (h *BrandHandler) Routes(r chi.Router) {
-	r.Get("/", httpHandler(h.GetAll))
-	r.Get("/{id}", httpHandler(h.GetByID))
+	r.Get("/", httpHandler(h.getAll))
+	r.Get("/{id}", httpHandler(h.getByID))
 
-	r.With(
-		middleware.JWTMiddleware,
-		middleware.AdminMiddleware,
-	).Post("/", httpHandler(h.create))
+	r.With(middleware.JWTMiddleware, middleware.AdminMiddleware).Post("/", httpHandler(h.create))
+	r.With(middleware.JWTMiddleware, middleware.AdminMiddleware).Put("/{id}", httpHandler(h.update))
+	r.With(middleware.JWTMiddleware, middleware.AdminMiddleware).Delete("/{id}", httpHandler(h.delete))
 }
 
-func (h *BrandHandler) GetAll(w http.ResponseWriter, r *http.Request) error {
+func (h *BrandHandler) getAll(w http.ResponseWriter, r *http.Request) error {
 	brands, err := h.brandService.GetAll(r.Context())
 	if err != nil {
 		return err
@@ -40,10 +39,10 @@ func (h *BrandHandler) GetAll(w http.ResponseWriter, r *http.Request) error {
 	return write(w, types.APIResponse{Code: http.StatusOK, Data: brands})
 }
 
-func (h *BrandHandler) GetByID(w http.ResponseWriter, r *http.Request) error {
+func (h *BrandHandler) getByID(w http.ResponseWriter, r *http.Request) error {
 	ID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		return types.NewAPIError(http.StatusBadRequest, err)
+		return util.InvalidParamID("id")
 	}
 
 	brand, err := h.brandService.GetByID(r.Context(), ID)
@@ -70,4 +69,48 @@ func (h *BrandHandler) create(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return write(w, types.APIResponse{Code: http.StatusOK, Message: "New brand created"})
+}
+
+func (h *BrandHandler) update(w http.ResponseWriter, r *http.Request) error {
+	ID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		return util.InvalidParamID("id")
+	}
+
+	var req types.UpdateBrandRequest
+
+	if err := readJSON(r, &req); err != nil {
+		return errInvalidJSON
+	}
+
+	if err := validate.Struct(req); err != nil {
+		return util.InvalidRequest(err)
+	}
+
+	err = h.brandService.Update(
+		r.Context(),
+		&types.Brand{
+			ID:      ID,
+			Name:    req.Name,
+			Website: &req.Website,
+		})
+
+	if err != nil {
+		return err
+	}
+
+	return write(w, types.APIResponse{Code: http.StatusOK, Message: "Brand updated"})
+}
+
+func (h *BrandHandler) delete(w http.ResponseWriter, r *http.Request) error {
+	ID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		return util.InvalidParamID("id")
+	}
+
+	if err := h.brandService.Delete(r.Context(), ID); err != nil {
+		return err
+	}
+
+	return write(w, types.APIResponse{Code: http.StatusOK, Message: "Brand deleted"})
 }

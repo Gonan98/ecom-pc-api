@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/gonan98/ecom-pc-api/internal/types"
 	"github.com/jackc/pgx/v5"
@@ -55,8 +54,19 @@ func (r *BrandRepository) GetByID(ctx context.Context, ID int) (*types.Brand, er
 }
 
 func (r *BrandRepository) Create(ctx context.Context, brand *types.Brand) error {
-	log.Printf("INSERT BRAND: %v", brand)
 	query := "INSERT INTO brands (name, website) VALUES ($1, $2)"
 	_, err := r.db.Exec(ctx, query, brand.Name, brand.Website)
+	return err
+}
+
+func (r *BrandRepository) Update(ctx context.Context, brand *types.Brand) error {
+	query := "UPDATE brands SET name = $1, website = $2 WHERE id = $3"
+	_, err := r.db.Exec(ctx, query, brand.Name, brand.Website, brand.ID)
+	return err
+}
+
+func (r *BrandRepository) Delete(ctx context.Context, ID int) error {
+	query := "DELETE FROM brands WHERE id = $1"
+	_, err := r.db.Exec(ctx, query, ID)
 	return err
 }

@@ -25,3 +25,7 @@ type CreateBrandRequest struct {
 	Name    string `json:"name" validate:"required"`
 	Website string `json:"website"`
 }
+
+type UpdateBrandRequest struct {
+	CreateBrandRequest
+}
