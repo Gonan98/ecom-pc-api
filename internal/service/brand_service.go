@@ -51,11 +51,14 @@ func (s *BrandService) Create(ctx context.Context, req *types.CreateBrandRequest
 	return s.brandRepo.Create(ctx, brand)
 }
 
-func (s *BrandService) Update(ctx context.Context, brand *types.Brand) error {
-	_, err := s.GetByID(ctx, brand.ID)
+func (s *BrandService) Update(ctx context.Context, req *types.UpdateBrandRequest, ID int) error {
+	brand, err := s.GetByID(ctx, ID)
 	if err != nil {
 		return err
 	}
+
+	brand.Name = req.Name
+	brand.Website = &req.Website
 
 	return s.brandRepo.Update(ctx, brand)
 }

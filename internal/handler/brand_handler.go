@@ -77,9 +77,9 @@ func (h *BrandHandler) update(w http.ResponseWriter, r *http.Request) error {
 		return util.InvalidParamID("id")
 	}
 
-	var req types.UpdateBrandRequest
+	var req *types.UpdateBrandRequest
 
-	if err := readJSON(r, &req); err != nil {
+	if err := readJSON(r, req); err != nil {
 		return errInvalidJSON
 	}
 
@@ -87,15 +87,7 @@ func (h *BrandHandler) update(w http.ResponseWriter, r *http.Request) error {
 		return util.InvalidRequest(err)
 	}
 
-	err = h.brandService.Update(
-		r.Context(),
-		&types.Brand{
-			ID:      ID,
-			Name:    req.Name,
-			Website: &req.Website,
-		})
-
-	if err != nil {
+	if err := h.brandService.Update(r.Context(), req, ID); err != nil {
 		return err
 	}
 

@@ -53,3 +53,21 @@ func (r *CategoryRepository) GetByID(ctx context.Context, ID int) (*types.Catego
 
 	return &category, nil
 }
+
+func (r *CategoryRepository) Create(ctx context.Context, category *types.Category) error {
+	query := "INSERT INTO categories (name, description) VALUES ($1, $2)"
+	_, err := r.db.Exec(ctx, query, category.Name, category.Description)
+	return err
+}
+
+func (r *CategoryRepository) Update(ctx context.Context, category *types.Category) error {
+	query := "UPDATE categories SET name = $1, description = $2 WHERE id = $3"
+	_, err := r.db.Exec(ctx, query, category.Name, category.Description, category.ID)
+	return err
+}
+
+func (r *CategoryRepository) Delete(ctx context.Context, ID int) error {
+	query := "DELETE FROM categories WHERE id = $1"
+	_, err := r.db.Exec(ctx, query, ID)
+	return err
+}

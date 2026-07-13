@@ -29,3 +29,12 @@ type CreateBrandRequest struct {
 type UpdateBrandRequest struct {
 	CreateBrandRequest
 }
+
+type CreateCategoryRequest struct {
+	Name        string `json:"name" validate:"required"`
+	Description string `json:"description"`
+}
+
+type UpdateCategoryRequest struct {
+	CreateCategoryRequest
+}
