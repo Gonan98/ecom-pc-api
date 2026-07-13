@@ -45,7 +45,7 @@ func (s *Server) Run() error {
 	authService := service.NewAuthService(userRepo, roleRepo, cartRepo, txManager)
 	brandService := service.NewBrandService(brandRepo)
 	categoryService := service.NewCategoryService(categoryRepo)
-	productService := service.NewProductService(productRepo)
+	productService := service.NewProductService(productRepo, brandRepo, categoryRepo)
 	cartService := service.NewCartService(cartRepo, productRepo)
 	orderService := service.NewOrderService(orderRepo, productRepo, cartRepo, txManager)
 

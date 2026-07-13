@@ -44,7 +44,7 @@ func (s *CategoryService) GetByID(ctx context.Context, ID int) (*types.Category,
 func (s *CategoryService) Create(ctx context.Context, req *types.CreateCategoryRequest) error {
 	category := &types.Category{
 		Name:        req.Name,
-		Description: &req.Description,
+		Description: req.Description,
 	}
 
 	return s.categoryRepo.Create(ctx, category)
@@ -58,7 +58,7 @@ func (s *CategoryService) Update(ctx context.Context, req *types.UpdateCategoryR
 	}
 
 	category.Name = req.Name
-	category.Description = &req.Description
+	category.Description = req.Description
 
 	return s.categoryRepo.Update(ctx, category)
 }

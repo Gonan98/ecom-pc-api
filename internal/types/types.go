@@ -8,15 +8,6 @@ type Role struct {
 	Description string `json:"description"`
 }
 
-type User struct {
-	ID           int    `json:"id"`
-	RoleID       int    `json:"roleId"`
-	FirstName    string `json:"firstName"`
-	LastName     string `json:"lastName"`
-	Email        string `json:"email"`
-	PasswordHash string `json:"-"`
-}
-
 type Brand struct {
 	ID      int     `json:"id"`
 	Name    string  `json:"name"`
@@ -29,15 +20,26 @@ type Category struct {
 	Description *string `json:"description"`
 }
 
+type User struct {
+	ID           int    `json:"id"`
+	RoleID       int    `json:"roleId"`
+	FirstName    string `json:"firstName"`
+	LastName     string `json:"lastName"`
+	Email        string `json:"email"`
+	PasswordHash string `json:"-"`
+	IsActive     bool   `json:"isActive"`
+}
+
 type Product struct {
 	ID          int     `json:"id"`
 	CategoryID  int     `json:"categoryId"`
 	BrandID     int     `json:"brandId"`
 	Name        string  `json:"name"`
-	Description string  `json:"description"`
+	Description *string `json:"description"`
 	ImageUrl    *string `json:"imageUrl"`
 	Price       float64 `json:"price"`
 	Stock       int     `json:"stock"`
+	IsActive    bool    `json:"isActive"`
 }
 
 type Order struct {

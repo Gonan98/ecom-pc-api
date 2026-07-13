@@ -61,7 +61,7 @@ func (h *CartHandler) addItem(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Message: fmt.Sprintf("Product %d added to cart", req.ProductID)})
+	return write(w, types.NewAPIResponse(http.StatusOK, fmt.Sprintf("Product %d added to cart", req.ProductID)))
 }
 
 func (h *CartHandler) deleteAllItems(w http.ResponseWriter, r *http.Request) error {
@@ -76,7 +76,7 @@ func (h *CartHandler) deleteAllItems(w http.ResponseWriter, r *http.Request) err
 func (h *CartHandler) deleteItemByProductID(w http.ResponseWriter, r *http.Request) error {
 	productID, err := strconv.Atoi(chi.URLParam(r, "productID"))
 	if err != nil {
-		return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("productID parameter must be an integer"))
+		return util.InvalidParamID("productID")
 	}
 
 	if err := h.cartService.DeleteCartItemByProductID(r.Context(), productID); err != nil {
@@ -90,7 +90,7 @@ func (h *CartHandler) deleteItemByProductID(w http.ResponseWriter, r *http.Reque
 func (h *CartHandler) updateItemQuantity(w http.ResponseWriter, r *http.Request) error {
 	productID, err := strconv.Atoi(chi.URLParam(r, "productID"))
 	if err != nil {
-		return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("productID parameter must be an integer"))
+		return util.InvalidParamID("productID")
 	}
 
 	var req types.UpdateCartItemRequest
@@ -107,5 +107,5 @@ func (h *CartHandler) updateItemQuantity(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Message: fmt.Sprintf("Item quantity updated for product %d", productID)})
+	return write(w, types.NewAPIResponse(http.StatusOK, fmt.Sprintf("Item quantity updated for product %d", productID)))
 }

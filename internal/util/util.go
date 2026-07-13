@@ -22,10 +22,14 @@ func InvalidRequest(err error) types.APIError {
 			errors[verr.Field()] = "is required"
 		case "email":
 			errors[verr.Field()] = "must be an email"
+		case "url":
+			errors[verr.Field()] = "must be an url"
 		case "min":
 			errors[verr.Field()] = fmt.Sprintf("must have at least %s characters", verr.Param())
 		case "max":
 			errors[verr.Field()] = fmt.Sprintf("must have a maximum of %s characters", verr.Param())
+		case "gte":
+			errors[verr.Field()] = fmt.Sprintf("must be greater or equal than %s", verr.Param())
 		case "gt":
 			errors[verr.Field()] = fmt.Sprintf("must be greater than %s", verr.Param())
 		default:
@@ -38,4 +42,8 @@ func InvalidRequest(err error) types.APIError {
 
 func InvalidParamID(paramID string) types.APIError {
 	return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("%s must be an integer", paramID))
+}
+
+func ResourceNotFound(resource string, ID int) types.APIError {
+	return types.NewAPIError(http.StatusNotFound, fmt.Errorf("%s with ID:%d does not exist", resource, ID))
 }

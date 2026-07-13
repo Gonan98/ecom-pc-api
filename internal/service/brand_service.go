@@ -45,7 +45,7 @@ func (s *BrandService) Create(ctx context.Context, req *types.CreateBrandRequest
 
 	brand := &types.Brand{
 		Name:    req.Name,
-		Website: &req.Website,
+		Website: req.Website,
 	}
 
 	return s.brandRepo.Create(ctx, brand)
@@ -58,7 +58,7 @@ func (s *BrandService) Update(ctx context.Context, req *types.UpdateBrandRequest
 	}
 
 	brand.Name = req.Name
-	brand.Website = &req.Website
+	brand.Website = req.Website
 
 	return s.brandRepo.Update(ctx, brand)
 }

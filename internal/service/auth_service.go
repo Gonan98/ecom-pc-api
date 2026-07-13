@@ -39,7 +39,7 @@ func NewAuthService(
 	}
 }
 
-func (s *AuthService) Register(ctx context.Context, user types.User) error {
+func (s *AuthService) Register(ctx context.Context, req *types.CreateUserRequest) error {
 	return s.txManager.RunInTx(ctx, func(tx pgx.Tx) error {
 
 		userTx := s.userRepo.WithTx(tx)
@@ -50,7 +50,7 @@ func (s *AuthService) Register(ctx context.Context, user types.User) error {
 			return fmt.Errorf("Role customer does not exist")
 		}
 
-		ok, err := s.userRepo.ExistByEmail(ctx, user.Email)
+		ok, err := s.userRepo.ExistByEmail(ctx, req.Email)
 		if err != nil {
 			return err
 		}
@@ -59,13 +59,20 @@ func (s *AuthService) Register(ctx context.Context, user types.User) error {
 			return errEmailAlreadyRegistered
 		}
 
-		hashedPassword, err := auth.HashPassword(user.PasswordHash)
+		hashedPassword, err := auth.HashPassword(req.Password)
 		if err != nil {
 			return err
 		}
-		user.PasswordHash = hashedPassword
 
-		userID, err := userTx.Create(ctx, user, roleID)
+		user := &types.User{
+			RoleID:       roleID,
+			FirstName:    req.FirstName,
+			LastName:     req.LastName,
+			Email:        req.Email,
+			PasswordHash: hashedPassword,
+		}
+
+		userID, err := userTx.Create(ctx, user)
 		if err != nil {
 			return err
 		}

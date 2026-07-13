@@ -22,10 +22,10 @@ func (r *UserRepository) WithTx(tx pgx.Tx) *UserRepository {
 	}
 }
 
-func (r *UserRepository) Create(ctx context.Context, user types.User, roleId int) (int, error) {
+func (r *UserRepository) Create(ctx context.Context, user *types.User) (int, error) {
 	userID := 0
 	query := "INSERT INTO users (first_name, last_name, email, password_hash, role_id) VALUES ($1, $2, $3, $4, $5) RETURNING id"
-	err := r.db.QueryRow(ctx, query, user.FirstName, user.LastName, user.Email, user.PasswordHash, roleId).Scan(&userID)
+	err := r.db.QueryRow(ctx, query, user.FirstName, user.LastName, user.Email, user.PasswordHash, user.RoleID).Scan(&userID)
 	return userID, err
 }
 
@@ -34,7 +34,7 @@ func (r *UserRepository) GetByID(ctx context.Context, ID int) (*types.User, erro
 	query := "SELECT id, first_name, last_name, email, role_id FROM users WHERE id = $1"
 	err := r.db.QueryRow(ctx, query, ID).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.RoleID)
 
-	if err != nil {
+	if err != nil && err != pgx.ErrNoRows {
 		return nil, fmt.Errorf("UserStore.GetByID: %v", err)
 	}
 

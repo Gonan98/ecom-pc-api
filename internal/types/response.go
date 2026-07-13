@@ -6,6 +6,21 @@ type APIResponse struct {
 	Data    any    `json:"data,omitempty"`
 }
 
+func NewAPIResponse(code int, message string) APIResponse {
+	return APIResponse{
+		Code:    code,
+		Message: message,
+	}
+}
+
+func NewAPIResponseWithData(code int, message string, data any) APIResponse {
+	return APIResponse{
+		Code:    code,
+		Message: message,
+		Data:    data,
+	}
+}
+
 type UserInfo struct {
 	ID        int    `json:"id"`
 	RoleName  string `json:"role"`

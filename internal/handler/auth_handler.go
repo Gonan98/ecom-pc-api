@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	errInvalidJSON = types.NewAPIError(http.StatusBadRequest, errors.New("Invalid JSON structure"))
+	errInvalidJSON = types.NewAPIError(http.StatusBadRequest, errors.New("Invalid JSON payload"))
 )
 
 type AuthHandler struct {
@@ -26,13 +26,13 @@ func NewAuthHandler(service *service.AuthService) *AuthHandler {
 }
 
 func (h *AuthHandler) Routes(r chi.Router) {
-	r.Post("/register", httpHandler(h.Register))
-	r.Post("/login", httpHandler(h.Login))
+	r.Post("/register", httpHandler(h.register))
+	r.Post("/login", httpHandler(h.login))
 
-	r.With(middleware.JWTMiddleware).Get("/profile", httpHandler(h.Profile))
+	r.With(middleware.JWTMiddleware).Get("/profile", httpHandler(h.getProfile))
 }
 
-func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) error {
+func (h *AuthHandler) register(w http.ResponseWriter, r *http.Request) error {
 	var req types.CreateUserRequest
 
 	if err := readJSON(r, &req); err != nil {
@@ -43,21 +43,14 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) error {
 		return util.InvalidRequest(err)
 	}
 
-	err := h.service.Register(r.Context(), types.User{
-		FirstName:    req.FirstName,
-		LastName:     req.LastName,
-		Email:        req.Email,
-		PasswordHash: req.Password,
-	})
-
-	if err != nil {
+	if err := h.service.Register(r.Context(), &req); err != nil {
 		return err
 	}
 
 	return write(w, types.APIResponse{Code: http.StatusCreated, Message: "User created"})
 }
 
-func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
+func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) error {
 	var req types.LogUserRequest
 
 	if err := readJSON(r, &req); err != nil {
@@ -73,14 +66,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Message: "Receiving token", Data: token})
+	return write(w, types.APIResponse{Code: http.StatusOK, Message: "Access token", Data: token})
 }
 
-func (h *AuthHandler) Profile(w http.ResponseWriter, r *http.Request) error {
-	u, err := h.service.Profile(r.Context())
+func (h *AuthHandler) getProfile(w http.ResponseWriter, r *http.Request) error {
+	userInfo, err := h.service.Profile(r.Context())
 	if err != nil {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Data: u})
+	return write(w, types.APIResponse{Code: http.StatusOK, Data: userInfo})
 }

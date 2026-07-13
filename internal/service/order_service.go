@@ -104,7 +104,11 @@ func (s *OrderService) Create(ctx context.Context) error {
 			}
 		}
 
-		return cartTx.DeleteCartItems(ctx, cart.ID)
+		if err := cartTx.DeleteCartItems(ctx, cart.ID); err != nil {
+			return err
+		}
+
+		return nil
 	})
 }
 
