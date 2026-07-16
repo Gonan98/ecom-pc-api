@@ -14,7 +14,7 @@ func JWTMiddleware(next http.Handler) http.Handler {
 		claims, err := auth.ValidateJWT(token)
 
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusForbidden)
+			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 

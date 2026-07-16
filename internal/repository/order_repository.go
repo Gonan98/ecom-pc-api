@@ -37,7 +37,31 @@ func (r *OrderRepository) CreateDetail(ctx context.Context, orderDetail *types.O
 	return err
 }
 
-func (r *OrderRepository) GetOrders(ctx context.Context, userID int) ([]types.Order, error) {
+func (r *OrderRepository) GetAllOrders(ctx context.Context) ([]types.Order, error) {
+	query := "SELECT id, user_id, status, total, created_at FROM orders"
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	orders := make([]types.Order, 0)
+	for rows.Next() {
+		var o types.Order
+		if err := rows.Scan(&o.ID, &o.UserID, &o.Status, &o.Total, &o.CreatedAt); err != nil {
+			return nil, err
+		}
+		orders = append(orders, o)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+}
+
+func (r *OrderRepository) GetOrdersByUser(ctx context.Context, userID int) ([]types.Order, error) {
 	query := "SELECT id, user_id, status, total, created_at FROM orders WHERE user_id = $1"
 	rows, err := r.db.Query(ctx, query, userID)
 	if err != nil {
@@ -59,6 +83,25 @@ func (r *OrderRepository) GetOrders(ctx context.Context, userID int) ([]types.Or
 	}
 
 	return orders, nil
+}
+
+func (r *OrderRepository) GetOrderByID(ctx context.Context, orderID int) (*types.Order, error) {
+	order := new(types.Order)
+	query := "SELECT id, user_id, status, total, created_at FROM orders WHERE id = $1"
+	err := r.db.QueryRow(ctx, query, orderID).Scan(&order.ID, &order.UserID, &order.Status, &order.Total, &order.CreatedAt)
+
+	if err != nil && err != pgx.ErrNoRows {
+		return nil, err
+	}
+
+	return order, nil
+}
+
+func (r *OrderRepository) ExistOrderByIDAndUserID(ctx context.Context, orderID int, userID int) (bool, error) {
+	result := false
+	query := "SELECT EXISTS (SELECT 1 FROM orders WHERE id = $1 AND user_id = $2)"
+	err := r.db.QueryRow(ctx, query, orderID, userID).Scan(&result)
+	return result, err
 }
 
 func (r *OrderRepository) GetOrderDetails(ctx context.Context, userID int, orderID int) ([]types.OrderDetail, error) {
@@ -83,4 +126,10 @@ func (r *OrderRepository) GetOrderDetails(ctx context.Context, userID int, order
 	}
 
 	return details, nil
+}
+
+func (r *OrderRepository) UpdateStatus(ctx context.Context, status string, orderID int) error {
+	query := "UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2"
+	_, err := r.db.Exec(ctx, query, status, orderID)
+	return err
 }

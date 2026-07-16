@@ -60,3 +60,7 @@ type UpdateProductRequest struct {
 	Price       float64 `json:"price" validate:"gt=0"`
 	Stock       int     `json:"stock" validate:"gte=0"`
 }
+
+type UpdateOrderStatusRequest struct {
+	Status OrderStatus `json:"status" validate:"required"`
+}

@@ -112,14 +112,18 @@ func (s *OrderService) Create(ctx context.Context) error {
 	})
 }
 
-func (s *OrderService) GetOrders(ctx context.Context) ([]types.Order, error) {
+func (s *OrderService) GetAllOrders(ctx context.Context) ([]types.Order, error) {
+	return s.orderRepo.GetAllOrders(ctx)
+}
+
+func (s *OrderService) GetOrdersByUser(ctx context.Context) ([]types.Order, error) {
 
 	userID, _, err := extractUserFromClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.orderRepo.GetOrders(ctx, userID)
+	return s.orderRepo.GetOrdersByUser(ctx, userID)
 }
 
 func (s *OrderService) GetOrderItems(ctx context.Context, orderID int) ([]types.OrderDetailResponse, error) {
@@ -156,4 +160,18 @@ func (s *OrderService) GetOrderItems(ctx context.Context, orderID int) ([]types.
 	}
 
 	return detailsResponse, nil
+}
+
+func (s *OrderService) UpdateStatus(ctx context.Context, orderID int, status types.OrderStatus) error {
+	order, err := s.orderRepo.GetOrderByID(ctx, orderID)
+	if err != nil {
+		return err
+	}
+
+	if order.ID == 0 {
+		return types.NewAPIError(http.StatusNotFound, fmt.Errorf("order with ID=%d does not exist", orderID))
+	}
+	// TODO: Verify valid status transition
+
+	return s.orderRepo.UpdateStatus(ctx, string(status), orderID)
 }
