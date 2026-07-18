@@ -44,12 +44,12 @@ func (s *OrderService) Create(ctx context.Context) error {
 			return err
 		}
 
-		cart, err := s.cartRepo.GetCart(ctx, userID)
+		cart, err := s.cartRepo.GetByUser(ctx, userID)
 		if err != nil {
 			return err
 		}
 
-		cartItems, err := s.cartRepo.GetCartItems(ctx, userID)
+		cartItems, err := s.cartRepo.GetItemsByUser(ctx, userID)
 		if err != nil {
 			return err
 		}
@@ -104,7 +104,7 @@ func (s *OrderService) Create(ctx context.Context) error {
 			}
 		}
 
-		if err := cartTx.DeleteCartItems(ctx, cart.ID); err != nil {
+		if err := cartTx.DeleteItems(ctx, cart.ID); err != nil {
 			return err
 		}
 
@@ -112,18 +112,18 @@ func (s *OrderService) Create(ctx context.Context) error {
 	})
 }
 
-func (s *OrderService) GetAllOrders(ctx context.Context) ([]types.Order, error) {
-	return s.orderRepo.GetAllOrders(ctx)
+func (s *OrderService) GetAll(ctx context.Context) ([]types.Order, error) {
+	return s.orderRepo.GetAll(ctx)
 }
 
-func (s *OrderService) GetOrdersByUser(ctx context.Context) ([]types.Order, error) {
+func (s *OrderService) GetAllByUser(ctx context.Context) ([]types.Order, error) {
 
 	userID, _, err := extractUserFromClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.orderRepo.GetOrdersByUser(ctx, userID)
+	return s.orderRepo.GetAllByUser(ctx, userID)
 }
 
 func (s *OrderService) GetOrderItems(ctx context.Context, orderID int) ([]types.OrderDetailResponse, error) {
@@ -132,7 +132,7 @@ func (s *OrderService) GetOrderItems(ctx context.Context, orderID int) ([]types.
 		return nil, err
 	}
 
-	details, err := s.orderRepo.GetOrderDetails(ctx, userID, orderID)
+	details, err := s.orderRepo.GetDetailsByOrderAndUser(ctx, userID, orderID)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func (s *OrderService) GetOrderItems(ctx context.Context, orderID int) ([]types.
 }
 
 func (s *OrderService) UpdateStatus(ctx context.Context, orderID int, status types.OrderStatus) error {
-	order, err := s.orderRepo.GetOrderByID(ctx, orderID)
+	order, err := s.orderRepo.GetByID(ctx, orderID)
 	if err != nil {
 		return err
 	}

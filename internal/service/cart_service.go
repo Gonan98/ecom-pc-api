@@ -28,14 +28,14 @@ func NewCartService(cartRepo *repo.CartRepository, productRepo *repo.ProductRepo
 	}
 }
 
-func (s *CartService) AddItemToCart(ctx context.Context, cartItem *types.CartItem) error {
+func (s *CartService) AddItem(ctx context.Context, cartItem *types.CartItem) error {
 
 	userID, _, err := extractUserFromClaims(ctx)
 	if err != nil {
 		return err
 	}
 
-	cart, err := s.cartRepo.GetCart(ctx, userID)
+	cart, err := s.cartRepo.GetByUser(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (s *CartService) GetCart(ctx context.Context) (*types.CartResponse, error) 
 		return nil, err
 	}
 
-	cartItems, err := s.cartRepo.GetCartItems(ctx, userID)
+	cartItems, err := s.cartRepo.GetItemsByUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -69,13 +69,13 @@ func (s *CartService) GetCart(ctx context.Context) (*types.CartResponse, error) 
 	return s.cartToResponse(ctx, cartItems)
 }
 
-func (s *CartService) DeleteCartItems(ctx context.Context) error {
+func (s *CartService) DeleteItems(ctx context.Context) error {
 	userID, _, err := extractUserFromClaims(ctx)
 	if err != nil {
 		return err
 	}
 
-	cart, err := s.cartRepo.GetCart(ctx, userID)
+	cart, err := s.cartRepo.GetByUser(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -89,16 +89,16 @@ func (s *CartService) DeleteCartItems(ctx context.Context) error {
 		return errCartIsEmpty
 	}
 
-	return s.cartRepo.DeleteCartItems(ctx, cart.ID)
+	return s.cartRepo.DeleteItems(ctx, cart.ID)
 }
 
-func (s *CartService) DeleteCartItemByProductID(ctx context.Context, productID int) error {
+func (s *CartService) DeleteItemByProductID(ctx context.Context, productID int) error {
 	userID, _, err := extractUserFromClaims(ctx)
 	if err != nil {
 		return err
 	}
 
-	cart, err := s.cartRepo.GetCart(ctx, userID)
+	cart, err := s.cartRepo.GetByUser(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func (s *CartService) DeleteCartItemByProductID(ctx context.Context, productID i
 		return errProductNotFoundInCart
 	}
 
-	return s.cartRepo.DeleteCartItemsByProductID(ctx, cart.ID, productID)
+	return s.cartRepo.DeleteItemsByProductID(ctx, cart.ID, productID)
 }
 
 func (s *CartService) UpdateItemQuantity(ctx context.Context, productID int, quantity int) error {
@@ -121,7 +121,7 @@ func (s *CartService) UpdateItemQuantity(ctx context.Context, productID int, qua
 		return err
 	}
 
-	cart, err := s.cartRepo.GetCart(ctx, userID)
+	cart, err := s.cartRepo.GetByUser(ctx, userID)
 	if err != nil {
 		return err
 	}

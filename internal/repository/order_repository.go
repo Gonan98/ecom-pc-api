@@ -37,7 +37,7 @@ func (r *OrderRepository) CreateDetail(ctx context.Context, orderDetail *types.O
 	return err
 }
 
-func (r *OrderRepository) GetAllOrders(ctx context.Context) ([]types.Order, error) {
+func (r *OrderRepository) GetAll(ctx context.Context) ([]types.Order, error) {
 	query := "SELECT id, user_id, status, total, created_at FROM orders"
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
@@ -61,7 +61,7 @@ func (r *OrderRepository) GetAllOrders(ctx context.Context) ([]types.Order, erro
 	return orders, nil
 }
 
-func (r *OrderRepository) GetOrdersByUser(ctx context.Context, userID int) ([]types.Order, error) {
+func (r *OrderRepository) GetAllByUser(ctx context.Context, userID int) ([]types.Order, error) {
 	query := "SELECT id, user_id, status, total, created_at FROM orders WHERE user_id = $1"
 	rows, err := r.db.Query(ctx, query, userID)
 	if err != nil {
@@ -85,7 +85,7 @@ func (r *OrderRepository) GetOrdersByUser(ctx context.Context, userID int) ([]ty
 	return orders, nil
 }
 
-func (r *OrderRepository) GetOrderByID(ctx context.Context, orderID int) (*types.Order, error) {
+func (r *OrderRepository) GetByID(ctx context.Context, orderID int) (*types.Order, error) {
 	order := new(types.Order)
 	query := "SELECT id, user_id, status, total, created_at FROM orders WHERE id = $1"
 	err := r.db.QueryRow(ctx, query, orderID).Scan(&order.ID, &order.UserID, &order.Status, &order.Total, &order.CreatedAt)
@@ -97,14 +97,14 @@ func (r *OrderRepository) GetOrderByID(ctx context.Context, orderID int) (*types
 	return order, nil
 }
 
-func (r *OrderRepository) ExistOrderByIDAndUserID(ctx context.Context, orderID int, userID int) (bool, error) {
-	result := false
-	query := "SELECT EXISTS (SELECT 1 FROM orders WHERE id = $1 AND user_id = $2)"
-	err := r.db.QueryRow(ctx, query, orderID, userID).Scan(&result)
-	return result, err
-}
+// func (r *OrderRepository) ExistOrderByIDAndUserID(ctx context.Context, orderID int, userID int) (bool, error) {
+// 	result := false
+// 	query := "SELECT EXISTS (SELECT 1 FROM orders WHERE id = $1 AND user_id = $2)"
+// 	err := r.db.QueryRow(ctx, query, orderID, userID).Scan(&result)
+// 	return result, err
+// }
 
-func (r *OrderRepository) GetOrderDetails(ctx context.Context, userID int, orderID int) ([]types.OrderDetail, error) {
+func (r *OrderRepository) GetDetailsByOrderAndUser(ctx context.Context, userID int, orderID int) ([]types.OrderDetail, error) {
 	query := "SELECT od.order_id, od.product_id, od.quantity, od.unit_price, od.discount FROM order_details od JOIN orders o ON o.id = od.order_id WHERE o.user_id = $1 AND od.order_id = $2"
 	rows, err := r.db.Query(ctx, query, userID, orderID)
 	if err != nil {

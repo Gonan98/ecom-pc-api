@@ -26,10 +26,10 @@ func (h *OrderHandler) Routes(r chi.Router) {
 	r.Use(middleware.JWTMiddleware)
 
 	r.Post("/", httpHandler(h.create))
-	r.Get("/", httpHandler(h.getOrdersByUser))
-	r.Get("/{id}/details", httpHandler(h.getOrderDetails))
+	r.Get("/", httpHandler(h.getByUser))
+	r.Get("/{id}/details", httpHandler(h.getDetails))
 
-	r.With(middleware.AdminMiddleware).Get("/", httpHandler(h.getAllOrders))
+	r.With(middleware.AdminMiddleware).Get("/", httpHandler(h.getAll))
 	r.With(middleware.AdminMiddleware).Patch("/{id}/status", httpHandler(h.updateStatus))
 }
 
@@ -41,8 +41,8 @@ func (h *OrderHandler) create(w http.ResponseWriter, r *http.Request) error {
 	return write(w, types.APIResponse{Code: http.StatusCreated, Message: "Order created"})
 }
 
-func (h *OrderHandler) getAllOrders(w http.ResponseWriter, r *http.Request) error {
-	orders, err := h.orderService.GetAllOrders(r.Context())
+func (h *OrderHandler) getAll(w http.ResponseWriter, r *http.Request) error {
+	orders, err := h.orderService.GetAll(r.Context())
 	if err != nil {
 		return err
 	}
@@ -50,8 +50,8 @@ func (h *OrderHandler) getAllOrders(w http.ResponseWriter, r *http.Request) erro
 	return write(w, types.APIResponse{Code: http.StatusOK, Data: orders})
 }
 
-func (h *OrderHandler) getOrdersByUser(w http.ResponseWriter, r *http.Request) error {
-	orders, err := h.orderService.GetOrdersByUser(r.Context())
+func (h *OrderHandler) getByUser(w http.ResponseWriter, r *http.Request) error {
+	orders, err := h.orderService.GetAllByUser(r.Context())
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func (h *OrderHandler) getOrdersByUser(w http.ResponseWriter, r *http.Request) e
 	return write(w, types.APIResponse{Code: http.StatusOK, Data: orders})
 }
 
-func (h *OrderHandler) getOrderDetails(w http.ResponseWriter, r *http.Request) error {
+func (h *OrderHandler) getDetails(w http.ResponseWriter, r *http.Request) error {
 	orderID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		return util.InvalidParamID("id")

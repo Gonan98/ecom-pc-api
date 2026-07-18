@@ -35,7 +35,7 @@ func (r *CartRepository) CreateItem(ctx context.Context, item *types.CartItem) e
 	return err
 }
 
-func (r *CartRepository) GetCart(ctx context.Context, userID int) (*types.Cart, error) {
+func (r *CartRepository) GetByUser(ctx context.Context, userID int) (*types.Cart, error) {
 	var cart types.Cart
 	q := "SELECT id, user_id FROM shopping_carts WHERE user_id = $1"
 	err := r.db.QueryRow(ctx, q, userID).Scan(&cart.ID, &cart.UserID)
@@ -47,7 +47,7 @@ func (r *CartRepository) GetCart(ctx context.Context, userID int) (*types.Cart, 
 	return &cart, nil
 }
 
-func (r *CartRepository) GetCartItems(ctx context.Context, userID int) ([]types.CartItem, error) {
+func (r *CartRepository) GetItemsByUser(ctx context.Context, userID int) ([]types.CartItem, error) {
 	q := "SELECT ci.cart_id, ci.product_id, ci.quantity FROM shopping_cart_items ci JOIN shopping_carts c ON ci.cart_id = c.id WHERE c.user_id = $1"
 	rows, err := r.db.Query(ctx, q, userID)
 	if err != nil {
@@ -92,13 +92,13 @@ func (r *CartRepository) UpdateItemQuantity(ctx context.Context, cartID int, pro
 	return err
 }
 
-func (r *CartRepository) DeleteCartItems(ctx context.Context, cartID int) error {
+func (r *CartRepository) DeleteItems(ctx context.Context, cartID int) error {
 	q := "DELETE FROM shopping_cart_items WHERE cart_id = $1"
 	_, err := r.db.Exec(ctx, q, cartID)
 	return err
 }
 
-func (r *CartRepository) DeleteCartItemsByProductID(ctx context.Context, cartID int, productID int) error {
+func (r *CartRepository) DeleteItemsByProductID(ctx context.Context, cartID int, productID int) error {
 	q := "DELETE FROM shopping_cart_items WHERE cart_id = $1 AND product_id = $2"
 	_, err := r.db.Exec(ctx, q, cartID, productID)
 	return err

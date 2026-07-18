@@ -52,7 +52,7 @@ func (h *CartHandler) addItem(w http.ResponseWriter, r *http.Request) error {
 		return util.InvalidRequest(err)
 	}
 
-	err := h.cartService.AddItemToCart(r.Context(), &types.CartItem{
+	err := h.cartService.AddItem(r.Context(), &types.CartItem{
 		ProductID: req.ProductID,
 		Quantity:  req.Quantity,
 	})
@@ -65,7 +65,7 @@ func (h *CartHandler) addItem(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *CartHandler) deleteAllItems(w http.ResponseWriter, r *http.Request) error {
-	if err := h.cartService.DeleteCartItems(r.Context()); err != nil {
+	if err := h.cartService.DeleteItems(r.Context()); err != nil {
 		return err
 	}
 
@@ -79,7 +79,7 @@ func (h *CartHandler) deleteItemByProductID(w http.ResponseWriter, r *http.Reque
 		return util.InvalidParamID("productID")
 	}
 
-	if err := h.cartService.DeleteCartItemByProductID(r.Context(), productID); err != nil {
+	if err := h.cartService.DeleteItemByProductID(r.Context(), productID); err != nil {
 		return err
 	}
 
