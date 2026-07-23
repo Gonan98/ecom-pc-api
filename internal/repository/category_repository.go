@@ -42,6 +42,13 @@ func (r *CategoryRepository) GetAll(ctx context.Context) ([]types.Category, erro
 	return categories, nil
 }
 
+func (r *CategoryRepository) Exists(ctx context.Context, ID int) (bool, error) {
+	query := "SELECT EXISTS (SELECT 1 FROM categories WHERE id = $1)"
+	result := false
+	err := r.db.QueryRow(ctx, query, ID).Scan(&result)
+	return result, err
+}
+
 func (r *CategoryRepository) GetByID(ctx context.Context, ID int) (*types.Category, error) {
 	var category types.Category
 	query := "SELECT id, name, description FROM categories WHERE id = $1"

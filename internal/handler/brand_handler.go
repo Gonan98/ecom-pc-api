@@ -36,7 +36,7 @@ func (h *BrandHandler) getAll(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Data: brands})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: brands})
 }
 
 func (h *BrandHandler) getByID(w http.ResponseWriter, r *http.Request) error {
@@ -50,7 +50,7 @@ func (h *BrandHandler) getByID(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Data: brand})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: brand})
 }
 
 func (h *BrandHandler) create(w http.ResponseWriter, r *http.Request) error {
@@ -68,7 +68,7 @@ func (h *BrandHandler) create(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Message: "New brand created"})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Message: "New brand created"})
 }
 
 func (h *BrandHandler) update(w http.ResponseWriter, r *http.Request) error {
@@ -91,7 +91,7 @@ func (h *BrandHandler) update(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Message: "Brand updated"})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Message: "Brand updated"})
 }
 
 func (h *BrandHandler) delete(w http.ResponseWriter, r *http.Request) error {
@@ -104,5 +104,5 @@ func (h *BrandHandler) delete(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Message: "Brand deleted"})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Message: "Brand deleted"})
 }

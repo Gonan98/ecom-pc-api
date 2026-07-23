@@ -42,6 +42,6 @@ func writeError(w http.ResponseWriter, apiErr types.APIError) error {
 	return writeJSON(w, apiErr.Code, apiErr)
 }
 
-func write(w http.ResponseWriter, resp types.APIResponse) error {
+func writeResponse(w http.ResponseWriter, resp types.APIResponse) error {
 	return writeJSON(w, resp.Code, resp)
 }

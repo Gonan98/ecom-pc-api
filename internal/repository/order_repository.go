@@ -61,7 +61,7 @@ func (r *OrderRepository) GetAll(ctx context.Context) ([]types.Order, error) {
 	return orders, nil
 }
 
-func (r *OrderRepository) GetAllByUser(ctx context.Context, userID int) ([]types.Order, error) {
+func (r *OrderRepository) GetByUser(ctx context.Context, userID int) ([]types.Order, error) {
 	query := "SELECT id, user_id, status, total, created_at FROM orders WHERE user_id = $1"
 	rows, err := r.db.Query(ctx, query, userID)
 	if err != nil {
@@ -103,6 +103,30 @@ func (r *OrderRepository) GetByID(ctx context.Context, orderID int) (*types.Orde
 // 	err := r.db.QueryRow(ctx, query, orderID, userID).Scan(&result)
 // 	return result, err
 // }
+
+func (r *OrderRepository) GetDetailsByOrder(ctx context.Context, orderID int) ([]types.OrderDetail, error) {
+	query := "SELECT od.order_id, od.product_id, od.quantity, od.unit_price, od.discount FROM order_details od JOIN orders o ON o.id = od.order_id WHERE od.order_id = $1"
+	rows, err := r.db.Query(ctx, query, orderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	details := make([]types.OrderDetail, 0)
+	for rows.Next() {
+		var od types.OrderDetail
+		if err := rows.Scan(&od.OrderID, &od.ProductID, &od.Quantity, &od.UnitPrice, &od.Discount); err != nil {
+			return nil, err
+		}
+		details = append(details, od)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return details, nil
+}
 
 func (r *OrderRepository) GetDetailsByOrderAndUser(ctx context.Context, userID int, orderID int) ([]types.OrderDetail, error) {
 	query := "SELECT od.order_id, od.product_id, od.quantity, od.unit_price, od.discount FROM order_details od JOIN orders o ON o.id = od.order_id WHERE o.user_id = $1 AND od.order_id = $2"

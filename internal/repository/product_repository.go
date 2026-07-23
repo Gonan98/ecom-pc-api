@@ -71,9 +71,15 @@ func (r *ProductRepository) Update(ctx context.Context, product *types.Product) 
 	return err
 }
 
-func (r *ProductRepository) UpdateStock(ctx context.Context, productID int, stock int) error {
-	q := "UPDATE products SET stock = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2"
-	_, err := r.db.Exec(ctx, q, stock, productID)
+func (r *ProductRepository) DecreaseStock(ctx context.Context, quantity, productID int) error {
+	q := "UPDATE products SET stock = stock - $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND stock >= $1"
+	_, err := r.db.Exec(ctx, q, quantity, productID)
+	return err
+}
+
+func (r *ProductRepository) IncreaseStock(ctx context.Context, quantity, productID int) error {
+	q := "UPDATE products SET stock = stock + $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2"
+	_, err := r.db.Exec(ctx, q, quantity, productID)
 	return err
 }
 

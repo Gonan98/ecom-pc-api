@@ -41,6 +41,13 @@ func (r *BrandRepository) GetAll(ctx context.Context) ([]types.Brand, error) {
 	return brands, nil
 }
 
+func (r *BrandRepository) Exists(ctx context.Context, ID int) (bool, error) {
+	query := "SELECT EXISTS (SELECT 1 FROM brands WHERE id = $1)"
+	result := false
+	err := r.db.QueryRow(ctx, query, ID).Scan(&result)
+	return result, err
+}
+
 func (r *BrandRepository) GetByID(ctx context.Context, ID int) (*types.Brand, error) {
 	var brand types.Brand
 	query := "SELECT id, name, website FROM brands WHERE id = $1"

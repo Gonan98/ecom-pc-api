@@ -47,7 +47,7 @@ func (h *AuthHandler) register(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusCreated, Message: "User created"})
+	return writeResponse(w, types.APIResponse{Code: http.StatusCreated, Message: "User created"})
 }
 
 func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) error {
@@ -66,7 +66,7 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Message: "Access token", Data: token})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Message: "Access token", Data: token})
 }
 
 func (h *AuthHandler) getProfile(w http.ResponseWriter, r *http.Request) error {
@@ -75,5 +75,5 @@ func (h *AuthHandler) getProfile(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Data: userInfo})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: userInfo})
 }

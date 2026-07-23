@@ -38,7 +38,7 @@ func (h *CartHandler) getCart(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Data: cartResponse})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: cartResponse})
 }
 
 func (h *CartHandler) addItem(w http.ResponseWriter, r *http.Request) error {
@@ -61,7 +61,7 @@ func (h *CartHandler) addItem(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.NewAPIResponse(http.StatusOK, fmt.Sprintf("Product %d added to cart", req.ProductID)))
+	return writeResponse(w, types.NewAPIResponse(http.StatusOK, fmt.Sprintf("Product %d added to cart", req.ProductID)))
 }
 
 func (h *CartHandler) deleteAllItems(w http.ResponseWriter, r *http.Request) error {
@@ -107,5 +107,5 @@ func (h *CartHandler) updateItemQuantity(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	return write(w, types.NewAPIResponse(http.StatusOK, fmt.Sprintf("Item quantity updated for product %d", productID)))
+	return writeResponse(w, types.NewAPIResponse(http.StatusOK, fmt.Sprintf("Item quantity updated for product %d", productID)))
 }

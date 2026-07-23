@@ -62,5 +62,5 @@ type UpdateProductRequest struct {
 }
 
 type UpdateOrderStatusRequest struct {
-	Status OrderStatus `json:"status" validate:"required"`
+	Status OrderStatus `json:"status" validate:"required,oneof=pending paid shipped delivered cancelled"`
 }

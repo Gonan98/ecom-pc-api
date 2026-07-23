@@ -48,7 +48,7 @@ func (h *CategoryHandler) getAll(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Data: cateogries})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: cateogries})
 }
 
 func (h *CategoryHandler) getByID(w http.ResponseWriter, r *http.Request) error {
@@ -62,7 +62,7 @@ func (h *CategoryHandler) getByID(w http.ResponseWriter, r *http.Request) error 
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Data: category})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: category})
 }
 
 func (h *CategoryHandler) create(w http.ResponseWriter, r *http.Request) error {
@@ -80,7 +80,7 @@ func (h *CategoryHandler) create(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusCreated, Message: "Category created"})
+	return writeResponse(w, types.APIResponse{Code: http.StatusCreated, Message: "Category created"})
 }
 
 func (h *CategoryHandler) update(w http.ResponseWriter, r *http.Request) error {
@@ -103,7 +103,7 @@ func (h *CategoryHandler) update(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Message: fmt.Sprintf("Category with ID = %d updated", ID)})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Message: fmt.Sprintf("Category with ID = %d updated", ID)})
 }
 
 func (h *CategoryHandler) delete(w http.ResponseWriter, r *http.Request) error {
@@ -116,5 +116,5 @@ func (h *CategoryHandler) delete(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Message: fmt.Sprintf("Category with ID = %d deleted", ID)})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Message: fmt.Sprintf("Category with ID = %d deleted", ID)})
 }

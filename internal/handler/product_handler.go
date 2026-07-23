@@ -47,7 +47,7 @@ func (h *ProductHandler) getAll(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Data: products})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: products})
 }
 
 func (h *ProductHandler) getByID(w http.ResponseWriter, r *http.Request) error {
@@ -61,7 +61,7 @@ func (h *ProductHandler) getByID(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Data: product})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: product})
 }
 
 func (h *ProductHandler) create(w http.ResponseWriter, r *http.Request) error {
@@ -79,7 +79,7 @@ func (h *ProductHandler) create(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.NewAPIResponse(http.StatusCreated, "New product created"))
+	return writeResponse(w, types.NewAPIResponse(http.StatusCreated, "New product created"))
 }
 
 func (h *ProductHandler) update(w http.ResponseWriter, r *http.Request) error {
@@ -102,7 +102,7 @@ func (h *ProductHandler) update(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.NewAPIResponse(http.StatusCreated, "Product updated"))
+	return writeResponse(w, types.NewAPIResponse(http.StatusCreated, "Product updated"))
 }
 
 func (h *ProductHandler) delete(w http.ResponseWriter, r *http.Request) error {
@@ -115,5 +115,5 @@ func (h *ProductHandler) delete(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return write(w, types.NewAPIResponse(http.StatusCreated, "Product deleted"))
+	return writeResponse(w, types.NewAPIResponse(http.StatusCreated, "Product deleted"))
 }

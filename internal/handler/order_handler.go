@@ -25,41 +25,32 @@ func NewOrderHandler(orderService *service.OrderService) *OrderHandler {
 func (h *OrderHandler) Routes(r chi.Router) {
 	r.Use(middleware.JWTMiddleware)
 
-	r.Post("/", httpHandler(h.create))
-	r.Get("/", httpHandler(h.getByUser))
-	r.Get("/{id}/details", httpHandler(h.getDetails))
+	r.Post("/", httpHandler(h.createOrder))
+	r.Get("/", httpHandler(h.getOrders))
+	r.Get("/{id}/details", httpHandler(h.getOrderDetails))
 
-	r.With(middleware.AdminMiddleware).Get("/", httpHandler(h.getAll))
+	// r.With(middleware.AdminMiddleware).Get("/", httpHandler(h.getAll))
 	r.With(middleware.AdminMiddleware).Patch("/{id}/status", httpHandler(h.updateStatus))
 }
 
-func (h *OrderHandler) create(w http.ResponseWriter, r *http.Request) error {
+func (h *OrderHandler) createOrder(w http.ResponseWriter, r *http.Request) error {
 	if err := h.orderService.Create(r.Context()); err != nil {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusCreated, Message: "Order created"})
+	return writeResponse(w, types.APIResponse{Code: http.StatusCreated, Message: "Order created"})
 }
 
-func (h *OrderHandler) getAll(w http.ResponseWriter, r *http.Request) error {
-	orders, err := h.orderService.GetAll(r.Context())
+func (h *OrderHandler) getOrders(w http.ResponseWriter, r *http.Request) error {
+	orders, err := h.orderService.GetOrders(r.Context())
 	if err != nil {
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Data: orders})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: orders})
 }
 
-func (h *OrderHandler) getByUser(w http.ResponseWriter, r *http.Request) error {
-	orders, err := h.orderService.GetAllByUser(r.Context())
-	if err != nil {
-		return err
-	}
-
-	return write(w, types.APIResponse{Code: http.StatusOK, Data: orders})
-}
-
-func (h *OrderHandler) getDetails(w http.ResponseWriter, r *http.Request) error {
+func (h *OrderHandler) getOrderDetails(w http.ResponseWriter, r *http.Request) error {
 	orderID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		return util.InvalidParamID("id")
@@ -70,7 +61,7 @@ func (h *OrderHandler) getDetails(w http.ResponseWriter, r *http.Request) error 
 		return err
 	}
 
-	return write(w, types.APIResponse{Code: http.StatusOK, Data: res})
+	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: res})
 }
 
 func (h *OrderHandler) updateStatus(w http.ResponseWriter, r *http.Request) error {
@@ -92,5 +83,5 @@ func (h *OrderHandler) updateStatus(w http.ResponseWriter, r *http.Request) erro
 		return err
 	}
 
-	return write(w, types.NewAPIResponse(http.StatusOK, fmt.Sprintf("Order %d status updated", orderID)))
+	return writeResponse(w, types.NewAPIResponse(http.StatusOK, fmt.Sprintf("Order %d status updated", orderID)))
 }
