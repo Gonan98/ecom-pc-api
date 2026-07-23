@@ -97,13 +97,6 @@ func (r *OrderRepository) GetByID(ctx context.Context, orderID int) (*types.Orde
 	return order, nil
 }
 
-// func (r *OrderRepository) ExistOrderByIDAndUserID(ctx context.Context, orderID int, userID int) (bool, error) {
-// 	result := false
-// 	query := "SELECT EXISTS (SELECT 1 FROM orders WHERE id = $1 AND user_id = $2)"
-// 	err := r.db.QueryRow(ctx, query, orderID, userID).Scan(&result)
-// 	return result, err
-// }
-
 func (r *OrderRepository) GetDetailsByOrder(ctx context.Context, orderID int) ([]types.OrderDetail, error) {
 	query := "SELECT od.order_id, od.product_id, od.quantity, od.unit_price, od.discount FROM order_details od JOIN orders o ON o.id = od.order_id WHERE od.order_id = $1"
 	rows, err := r.db.Query(ctx, query, orderID)

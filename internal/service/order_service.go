@@ -168,7 +168,14 @@ func (s *OrderService) UpdateStatus(ctx context.Context, orderID int, status typ
 	if order.ID == 0 {
 		return types.NewAPIError(http.StatusNotFound, fmt.Errorf("order with ID=%d does not exist", orderID))
 	}
-	// TODO: Verify valid status transition
+	valid := (order.Status == string(types.OrderStatusPending) &&
+		(status == types.OrderStatusPaid || status == types.OrderStatusCancelled)) ||
+		(order.Status == string(types.OrderStatusPaid) &&
+			(status == types.OrderStatusShipped || status == types.OrderStatusCancelled)) ||
+		(order.Status == string(types.OrderStatusShipped) && status == types.OrderStatusDelivered)
+	if !valid {
+		return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("cannot transition order status from %q to %q", order.Status, status))
+	}
 
 	return s.orderRepo.UpdateStatus(ctx, string(status), orderID)
 }
