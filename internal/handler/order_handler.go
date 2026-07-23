@@ -29,7 +29,6 @@ func (h *OrderHandler) Routes(r chi.Router) {
 	r.Get("/", httpHandler(h.getOrders))
 	r.Get("/{id}/details", httpHandler(h.getOrderDetails))
 
-	// r.With(middleware.AdminMiddleware).Get("/", httpHandler(h.getAll))
 	r.With(middleware.AdminMiddleware).Patch("/{id}/status", httpHandler(h.updateStatus))
 }
 

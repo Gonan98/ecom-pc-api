@@ -2,11 +2,12 @@ package service
 
 import (
 	"context"
-	"fmt"
-	"net/http"
+	"errors"
 
 	repo "github.com/gonan98/ecom-pc-api/internal/repository"
 	"github.com/gonan98/ecom-pc-api/internal/types"
+	"github.com/gonan98/ecom-pc-api/internal/util"
+	"github.com/jackc/pgx/v5"
 )
 
 type CategoryService struct {
@@ -20,22 +21,17 @@ func NewCategoryService(categoryRepo *repo.CategoryRepository) *CategoryService 
 }
 
 func (s *CategoryService) GetAll(ctx context.Context) ([]types.Category, error) {
-	categories, err := s.categoryRepo.GetAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return categories, nil
+	return s.categoryRepo.GetAll(ctx)
 }
 
 func (s *CategoryService) GetByID(ctx context.Context, ID int) (*types.Category, error) {
 	category, err := s.categoryRepo.GetByID(ctx, ID)
-	if err != nil {
-		return nil, err
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, util.ResourceNotFound("category", ID)
 	}
 
-	if category.ID == 0 {
-		return nil, types.NewAPIError(http.StatusNotFound, fmt.Errorf("Category with ID=%d not found", ID))
+	if err != nil {
+		return nil, err
 	}
 
 	return category, nil

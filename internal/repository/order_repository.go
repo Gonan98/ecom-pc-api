@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gonan98/ecom-pc-api/internal/types"
 	"github.com/jackc/pgx/v5"
@@ -90,8 +91,8 @@ func (r *OrderRepository) GetByID(ctx context.Context, orderID int) (*types.Orde
 	query := "SELECT id, user_id, status, total, created_at FROM orders WHERE id = $1"
 	err := r.db.QueryRow(ctx, query, orderID).Scan(&order.ID, &order.UserID, &order.Status, &order.Total, &order.CreatedAt)
 
-	if err != nil && err != pgx.ErrNoRows {
-		return nil, err
+	if err != nil {
+		return nil, fmt.Errorf("order get by ID %d: %w", orderID, err)
 	}
 
 	return order, nil

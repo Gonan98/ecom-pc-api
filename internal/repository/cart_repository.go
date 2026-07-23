@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gonan98/ecom-pc-api/internal/types"
 	"github.com/jackc/pgx/v5"
@@ -40,8 +41,8 @@ func (r *CartRepository) GetByUser(ctx context.Context, userID int) (*types.Cart
 	q := "SELECT id, user_id FROM shopping_carts WHERE user_id = $1"
 	err := r.db.QueryRow(ctx, q, userID).Scan(&cart.ID, &cart.UserID)
 
-	if err != nil && err != pgx.ErrNoRows {
-		return nil, err
+	if err != nil {
+		return nil, fmt.Errorf("cart get by user %d: %w", userID, err)
 	}
 
 	return &cart, nil

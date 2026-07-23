@@ -52,8 +52,8 @@ func (r *ProductRepository) GetByID(ctx context.Context, ID int) (*types.Product
 	query := "SELECT id, category_id, brand_id, name, description, image_url, price, stock, is_active FROM products WHERE id = $1"
 	err := r.db.QueryRow(ctx, query, ID).Scan(&p.ID, &p.CategoryID, &p.BrandID, &p.Name, &p.Description, &p.ImageUrl, &p.Price, &p.Stock, &p.IsActive)
 
-	if err != nil && err != pgx.ErrNoRows {
-		return nil, fmt.Errorf("Product.GetByID: %v", err)
+	if err != nil {
+		return nil, fmt.Errorf("product get by ID %d: %w", ID, err)
 	}
 
 	return &p, nil

@@ -23,14 +23,19 @@ func (r *RoleRepository) GetByID(ctx context.Context, ID int) (*types.Role, erro
 	err := r.db.QueryRow(ctx, query, ID).Scan(&role.ID, &role.Name, &role.Description)
 
 	if err != nil {
-		return nil, fmt.Errorf("Role.GetByID: %v", err)
+		return nil, fmt.Errorf("role get by ID %d: %w", ID, err)
 	}
 
 	return &role, nil
 }
 
-func (r *RoleRepository) GetCustomerRoleID(ctx context.Context) (int, error) {
-	customerID := 0
-	err := r.db.QueryRow(ctx, "SELECT id FROM roles WHERE name = $1", "customer").Scan(&customerID)
-	return customerID, err
+func (r *RoleRepository) GetByName(ctx context.Context, roleName types.RoleName) (*types.Role, error) {
+	var role types.Role
+	err := r.db.QueryRow(ctx, "SELECT id, name, description FROM roles WHERE name = $1", roleName).Scan(&role.ID, &role.Name, &role.Description)
+
+	if err != nil {
+		return nil, fmt.Errorf("role get by name %s: %w", roleName, err)
+	}
+
+	return &role, nil
 }

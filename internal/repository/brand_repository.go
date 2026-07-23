@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/gonan98/ecom-pc-api/internal/types"
-	"github.com/jackc/pgx/v5"
 )
 
 type BrandRepository struct {
@@ -53,8 +52,8 @@ func (r *BrandRepository) GetByID(ctx context.Context, ID int) (*types.Brand, er
 	query := "SELECT id, name, website FROM brands WHERE id = $1"
 	err := r.db.QueryRow(ctx, query, ID).Scan(&brand.ID, &brand.Name, &brand.Website)
 
-	if err != nil && err != pgx.ErrNoRows {
-		return nil, fmt.Errorf("Brand.GetByID: %v", err)
+	if err != nil {
+		return nil, fmt.Errorf("brand get by ID %d: %w", ID, err)
 	}
 
 	return &brand, nil

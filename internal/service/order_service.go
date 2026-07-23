@@ -121,7 +121,7 @@ func (s *OrderService) GetOrders(ctx context.Context) ([]types.Order, error) {
 		return nil, err
 	}
 
-	if role == "admin" {
+	if role == types.RoleNameAdmin {
 		return s.orderRepo.GetAll(ctx)
 	}
 
@@ -134,7 +134,7 @@ func (s *OrderService) GetOrderItems(ctx context.Context, orderID int) ([]types.
 		return nil, err
 	}
 
-	if role == "admin" {
+	if role == types.RoleNameAdmin {
 		details, err := s.orderRepo.GetDetailsByOrder(ctx, orderID)
 		if err != nil {
 			return nil, err
@@ -168,13 +168,13 @@ func (s *OrderService) UpdateStatus(ctx context.Context, orderID int, status typ
 	if order.ID == 0 {
 		return types.NewAPIError(http.StatusNotFound, fmt.Errorf("order with ID=%d does not exist", orderID))
 	}
-	valid := (order.Status == string(types.OrderStatusPending) &&
-		(status == types.OrderStatusPaid || status == types.OrderStatusCancelled)) ||
-		(order.Status == string(types.OrderStatusPaid) &&
-			(status == types.OrderStatusShipped || status == types.OrderStatusCancelled)) ||
-		(order.Status == string(types.OrderStatusShipped) && status == types.OrderStatusDelivered)
+
+	valid := (order.Status == types.OrderStatusPending && (status == types.OrderStatusPaid || status == types.OrderStatusCancelled)) ||
+		(order.Status == types.OrderStatusPaid && (status == types.OrderStatusShipped || status == types.OrderStatusCancelled)) ||
+		(order.Status == types.OrderStatusShipped && status == types.OrderStatusDelivered)
+
 	if !valid {
-		return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("cannot transition order status from %q to %q", order.Status, status))
+		return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("cannot transition order status from %s to %s", order.Status, status))
 	}
 
 	return s.orderRepo.UpdateStatus(ctx, string(status), orderID)

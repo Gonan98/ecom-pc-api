@@ -34,8 +34,8 @@ func (r *UserRepository) GetByID(ctx context.Context, ID int) (*types.User, erro
 	query := "SELECT id, first_name, last_name, email, role_id FROM users WHERE id = $1"
 	err := r.db.QueryRow(ctx, query, ID).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.RoleID)
 
-	if err != nil && err != pgx.ErrNoRows {
-		return nil, fmt.Errorf("UserStore.GetByID: %v", err)
+	if err != nil {
+		return nil, fmt.Errorf("user get by ID %d: %w", ID, err)
 	}
 
 	return &user, nil
@@ -47,7 +47,7 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*types.U
 	err := r.db.QueryRow(ctx, query, email).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.RoleID)
 
 	if err != nil {
-		return nil, fmt.Errorf("UserStore.GetByEmail: %v", err)
+		return nil, fmt.Errorf("user get by email %s: %w", email, err)
 	}
 
 	return &user, nil

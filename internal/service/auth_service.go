@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gonan98/ecom-pc-api/internal/auth"
@@ -45,9 +44,9 @@ func (s *AuthService) Register(ctx context.Context, req *types.CreateUserRequest
 		userTx := s.userRepo.WithTx(tx)
 		cartTx := s.cartRepo.WithTx(tx)
 
-		roleID, err := s.roleRepo.GetCustomerRoleID(ctx)
+		role, err := s.roleRepo.GetByName(ctx, types.RoleNameCustomer)
 		if err != nil {
-			return fmt.Errorf("Role customer does not exist")
+			return err
 		}
 
 		ok, err := s.userRepo.ExistByEmail(ctx, req.Email)
@@ -65,7 +64,7 @@ func (s *AuthService) Register(ctx context.Context, req *types.CreateUserRequest
 		}
 
 		user := &types.User{
-			RoleID:       roleID,
+			RoleID:       role.ID,
 			FirstName:    req.FirstName,
 			LastName:     req.LastName,
 			Email:        req.Email,
@@ -109,7 +108,7 @@ func (s *AuthService) Login(ctx context.Context, req *types.LogUserRequest) (str
 }
 
 func (s *AuthService) Profile(ctx context.Context) (*types.UserInfo, error) {
-	userID, role, err := extractUserFromClaims(ctx)
+	userID, roleName, err := extractUserFromClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +120,7 @@ func (s *AuthService) Profile(ctx context.Context) (*types.UserInfo, error) {
 
 	userInfo := &types.UserInfo{
 		ID:        user.ID,
-		RoleName:  role,
+		RoleName:  string(roleName),
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Email:     user.Email,
@@ -130,7 +129,7 @@ func (s *AuthService) Profile(ctx context.Context) (*types.UserInfo, error) {
 	return userInfo, nil
 }
 
-func extractUserFromClaims(ctx context.Context) (int, string, error) {
+func extractUserFromClaims(ctx context.Context) (int, types.RoleName, error) {
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
 		return 0, "", err

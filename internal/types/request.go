@@ -17,26 +17,12 @@ type CartItemRequest struct {
 	Quantity  int `json:"quantity" validate:"gt=0"`
 }
 
-type UpdateCartItemRequest struct {
-	Quantity int `json:"quantity" validate:"gt=0"`
-}
-
 type CreateBrandRequest struct {
 	Name    string  `json:"name" validate:"required"`
 	Website *string `json:"website" validate:"omitempty,url"`
 }
 
-type UpdateBrandRequest struct {
-	Name    string  `json:"name" validate:"required"`
-	Website *string `json:"website" validate:"omitempty,url"`
-}
-
 type CreateCategoryRequest struct {
-	Name        string  `json:"name" validate:"required"`
-	Description *string `json:"description"`
-}
-
-type UpdateCategoryRequest struct {
 	Name        string  `json:"name" validate:"required"`
 	Description *string `json:"description"`
 }
@@ -49,6 +35,20 @@ type CreateProductRequest struct {
 	ImageUrl    *string `json:"imageUrl" validate:"omitempty,url"`
 	Price       float64 `json:"price" validate:"gt=0"`
 	Stock       int     `json:"stock" validate:"gte=0"`
+}
+
+type UpdateCartItemRequest struct {
+	Quantity int `json:"quantity" validate:"gt=0"`
+}
+
+type UpdateBrandRequest struct {
+	Name    string  `json:"name" validate:"required"`
+	Website *string `json:"website" validate:"omitempty,url"`
+}
+
+type UpdateCategoryRequest struct {
+	Name        string  `json:"name" validate:"required"`
+	Description *string `json:"description"`
 }
 
 type UpdateProductRequest struct {

@@ -2,11 +2,12 @@ package service
 
 import (
 	"context"
-	"fmt"
-	"net/http"
+	"errors"
 
 	repo "github.com/gonan98/ecom-pc-api/internal/repository"
 	"github.com/gonan98/ecom-pc-api/internal/types"
+	"github.com/gonan98/ecom-pc-api/internal/util"
+	"github.com/jackc/pgx/v5"
 )
 
 type BrandService struct {
@@ -20,22 +21,17 @@ func NewBrandService(brandRepo *repo.BrandRepository) *BrandService {
 }
 
 func (s *BrandService) GetAll(ctx context.Context) ([]types.Brand, error) {
-	brands, err := s.brandRepo.GetAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return brands, nil
+	return s.brandRepo.GetAll(ctx)
 }
 
 func (s *BrandService) GetByID(ctx context.Context, ID int) (*types.Brand, error) {
 	brand, err := s.brandRepo.GetByID(ctx, ID)
-	if err != nil {
-		return nil, err
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, util.ResourceNotFound("brand", ID)
 	}
 
-	if brand.ID == 0 {
-		return nil, types.NewAPIError(http.StatusNotFound, fmt.Errorf("Brand with ID=%d not found", ID))
+	if err != nil {
+		return nil, err
 	}
 
 	return brand, nil

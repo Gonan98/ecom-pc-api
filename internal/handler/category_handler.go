@@ -23,26 +23,26 @@ func NewCategoryHandler(categoryService *service.CategoryService) *CategoryHandl
 }
 
 func (h *CategoryHandler) Routes(r chi.Router) {
-	r.Get("/", httpHandler(h.getAll))
-	r.Get("/{id}", httpHandler(h.getByID))
+	r.Get("/", httpHandler(h.getCategories))
+	r.Get("/{id}", httpHandler(h.getCategoryByID))
 
 	r.With(
 		middleware.JWTMiddleware,
 		middleware.AdminMiddleware,
-	).Post("/", httpHandler(h.create))
+	).Post("/", httpHandler(h.createCategory))
 
 	r.With(
 		middleware.JWTMiddleware,
 		middleware.AdminMiddleware,
-	).Put("/{id}", httpHandler(h.update))
+	).Put("/{id}", httpHandler(h.updateCategory))
 
 	r.With(
 		middleware.JWTMiddleware,
 		middleware.AdminMiddleware,
-	).Delete("/{id}", httpHandler(h.delete))
+	).Delete("/{id}", httpHandler(h.deleteCategory))
 }
 
-func (h *CategoryHandler) getAll(w http.ResponseWriter, r *http.Request) error {
+func (h *CategoryHandler) getCategories(w http.ResponseWriter, r *http.Request) error {
 	cateogries, err := h.categoryService.GetAll(r.Context())
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func (h *CategoryHandler) getAll(w http.ResponseWriter, r *http.Request) error {
 	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: cateogries})
 }
 
-func (h *CategoryHandler) getByID(w http.ResponseWriter, r *http.Request) error {
+func (h *CategoryHandler) getCategoryByID(w http.ResponseWriter, r *http.Request) error {
 	ID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		return types.NewAPIError(http.StatusBadRequest, err)
@@ -65,7 +65,7 @@ func (h *CategoryHandler) getByID(w http.ResponseWriter, r *http.Request) error 
 	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: category})
 }
 
-func (h *CategoryHandler) create(w http.ResponseWriter, r *http.Request) error {
+func (h *CategoryHandler) createCategory(w http.ResponseWriter, r *http.Request) error {
 	req := new(types.CreateCategoryRequest)
 
 	if err := readJSON(r, req); err != nil {
@@ -83,7 +83,7 @@ func (h *CategoryHandler) create(w http.ResponseWriter, r *http.Request) error {
 	return writeResponse(w, types.APIResponse{Code: http.StatusCreated, Message: "Category created"})
 }
 
-func (h *CategoryHandler) update(w http.ResponseWriter, r *http.Request) error {
+func (h *CategoryHandler) updateCategory(w http.ResponseWriter, r *http.Request) error {
 	ID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		return util.InvalidParamID("id")
@@ -106,7 +106,7 @@ func (h *CategoryHandler) update(w http.ResponseWriter, r *http.Request) error {
 	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Message: fmt.Sprintf("Category with ID = %d updated", ID)})
 }
 
-func (h *CategoryHandler) delete(w http.ResponseWriter, r *http.Request) error {
+func (h *CategoryHandler) deleteCategory(w http.ResponseWriter, r *http.Request) error {
 	ID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		return util.InvalidParamID("id")

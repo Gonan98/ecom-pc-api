@@ -22,15 +22,15 @@ func NewBrandHandler(brandService *service.BrandService) *BrandHandler {
 }
 
 func (h *BrandHandler) Routes(r chi.Router) {
-	r.Get("/", httpHandler(h.getAll))
-	r.Get("/{id}", httpHandler(h.getByID))
+	r.Get("/", httpHandler(h.getBrands))
+	r.Get("/{id}", httpHandler(h.getBrandByID))
 
-	r.With(middleware.JWTMiddleware, middleware.AdminMiddleware).Post("/", httpHandler(h.create))
-	r.With(middleware.JWTMiddleware, middleware.AdminMiddleware).Put("/{id}", httpHandler(h.update))
-	r.With(middleware.JWTMiddleware, middleware.AdminMiddleware).Delete("/{id}", httpHandler(h.delete))
+	r.With(middleware.JWTMiddleware, middleware.AdminMiddleware).Post("/", httpHandler(h.createBrand))
+	r.With(middleware.JWTMiddleware, middleware.AdminMiddleware).Put("/{id}", httpHandler(h.updateBrand))
+	r.With(middleware.JWTMiddleware, middleware.AdminMiddleware).Delete("/{id}", httpHandler(h.deleteBrand))
 }
 
-func (h *BrandHandler) getAll(w http.ResponseWriter, r *http.Request) error {
+func (h *BrandHandler) getBrands(w http.ResponseWriter, r *http.Request) error {
 	brands, err := h.brandService.GetAll(r.Context())
 	if err != nil {
 		return err
@@ -39,7 +39,7 @@ func (h *BrandHandler) getAll(w http.ResponseWriter, r *http.Request) error {
 	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: brands})
 }
 
-func (h *BrandHandler) getByID(w http.ResponseWriter, r *http.Request) error {
+func (h *BrandHandler) getBrandByID(w http.ResponseWriter, r *http.Request) error {
 	ID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		return util.InvalidParamID("id")
@@ -53,7 +53,7 @@ func (h *BrandHandler) getByID(w http.ResponseWriter, r *http.Request) error {
 	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: brand})
 }
 
-func (h *BrandHandler) create(w http.ResponseWriter, r *http.Request) error {
+func (h *BrandHandler) createBrand(w http.ResponseWriter, r *http.Request) error {
 	var req types.CreateBrandRequest
 
 	if err := readJSON(r, &req); err != nil {
@@ -71,7 +71,7 @@ func (h *BrandHandler) create(w http.ResponseWriter, r *http.Request) error {
 	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Message: "New brand created"})
 }
 
-func (h *BrandHandler) update(w http.ResponseWriter, r *http.Request) error {
+func (h *BrandHandler) updateBrand(w http.ResponseWriter, r *http.Request) error {
 	ID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		return util.InvalidParamID("id")
@@ -94,7 +94,7 @@ func (h *BrandHandler) update(w http.ResponseWriter, r *http.Request) error {
 	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Message: "Brand updated"})
 }
 
-func (h *BrandHandler) delete(w http.ResponseWriter, r *http.Request) error {
+func (h *BrandHandler) deleteBrand(w http.ResponseWriter, r *http.Request) error {
 	ID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		return util.InvalidParamID("id")

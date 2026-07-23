@@ -2,10 +2,27 @@ package types
 
 import "time"
 
+type RoleName string
+
+const (
+	RoleNameAdmin    RoleName = "admin"
+	RoleNameCustomer RoleName = "customer"
+)
+
+type OrderStatus string
+
+const (
+	OrderStatusPending   OrderStatus = "pending"
+	OrderStatusPaid      OrderStatus = "paid"
+	OrderStatusShipped   OrderStatus = "shipped"
+	OrderStatusDelivered OrderStatus = "delivered"
+	OrderStatusCancelled OrderStatus = "cancelled"
+)
+
 type Role struct {
-	ID          int    `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	ID          int      `json:"id"`
+	Name        RoleName `json:"name"`
+	Description string   `json:"description"`
 }
 
 type Brand struct {
@@ -43,11 +60,11 @@ type Product struct {
 }
 
 type Order struct {
-	ID        int       `json:"id"`
-	UserID    int       `json:"userId"`
-	Status    string    `json:"status"`
-	Total     float64   `json:"total"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID        int         `json:"id"`
+	UserID    int         `json:"userId"`
+	Status    OrderStatus `json:"status"`
+	Total     float64     `json:"total"`
+	CreatedAt time.Time   `json:"createdAt"`
 }
 
 type OrderDetail struct {
@@ -68,13 +85,3 @@ type CartItem struct {
 	ProductID int `json:"productId"`
 	Quantity  int `json:"quantity"`
 }
-
-type OrderStatus string
-
-const (
-	OrderStatusPending   OrderStatus = "pending"
-	OrderStatusPaid      OrderStatus = "paid"
-	OrderStatusShipped   OrderStatus = "shipped"
-	OrderStatusDelivered OrderStatus = "delivered"
-	OrderStatusCancelled OrderStatus = "cancelled"
-)

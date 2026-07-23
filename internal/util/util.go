@@ -32,6 +32,8 @@ func InvalidRequest(err error) types.APIError {
 			errors[verr.Field()] = fmt.Sprintf("must be greater or equal than %s", verr.Param())
 		case "gt":
 			errors[verr.Field()] = fmt.Sprintf("must be greater than %s", verr.Param())
+		case "oneof":
+			errors[verr.Field()] = fmt.Sprintf("must be one of the following: %s", verr.Param())
 		default:
 			errors[verr.Field()] = "not valid"
 		}
@@ -45,5 +47,5 @@ func InvalidParamID(paramID string) types.APIError {
 }
 
 func ResourceNotFound(resource string, ID int) types.APIError {
-	return types.NewAPIError(http.StatusNotFound, fmt.Errorf("%s with ID:%d does not exist", resource, ID))
+	return types.NewAPIError(http.StatusNotFound, fmt.Errorf("%s with ID %d does not exist", resource, ID))
 }

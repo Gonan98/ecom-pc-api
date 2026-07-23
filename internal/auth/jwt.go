@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/gonan98/ecom-pc-api/internal/config"
+	"github.com/gonan98/ecom-pc-api/internal/types"
 )
 
 type contextKey string
@@ -15,7 +16,7 @@ type contextKey string
 const UserContextKey contextKey = "user"
 
 type UserClaims struct {
-	Role string `json:"role"`
+	Role types.RoleName `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -23,7 +24,7 @@ func (u *UserClaims) UserID() (int, error) {
 	return strconv.Atoi(u.Subject)
 }
 
-func GenerateJWT(userID int, role string) (string, error) {
+func GenerateJWT(userID int, role types.RoleName) (string, error) {
 	exp, err := time.ParseDuration(config.Envs.JWTExpiration)
 	if err != nil {
 		return "", err
@@ -75,7 +76,7 @@ func ValidateJWT(tokenStr string) (*UserClaims, error) {
 func GetClaims(ctx context.Context) (*UserClaims, error) {
 	claims, ok := ctx.Value(UserContextKey).(*UserClaims)
 	if !ok {
-		return nil, fmt.Errorf("User claims not found")
+		return nil, fmt.Errorf("user claims not found")
 	}
 
 	return claims, nil

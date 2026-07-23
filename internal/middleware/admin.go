@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gonan98/ecom-pc-api/internal/auth"
+	"github.com/gonan98/ecom-pc-api/internal/types"
 )
 
 func AdminMiddleware(next http.Handler) http.Handler {
@@ -14,7 +15,7 @@ func AdminMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if claims.Role != "admin" {
+		if claims.Role != types.RoleNameAdmin {
 			http.Error(w, "Not allowed, you are not an administrator", http.StatusForbidden)
 			return
 		}
