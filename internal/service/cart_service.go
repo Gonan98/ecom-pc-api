@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 
 	repo "github.com/gonan98/ecom-pc-api/internal/repository"
@@ -17,14 +16,14 @@ var (
 )
 
 type CartService struct {
-	cartRepo    *repo.CartRepository
-	productRepo *repo.ProductRepository
+	cartRepo       *repo.CartRepository
+	productService *ProductService
 }
 
-func NewCartService(cartRepo *repo.CartRepository, productRepo *repo.ProductRepository) *CartService {
+func NewCartService(cartRepo *repo.CartRepository, productService *ProductService) *CartService {
 	return &CartService{
-		cartRepo:    cartRepo,
-		productRepo: productRepo,
+		cartRepo:       cartRepo,
+		productService: productService,
 	}
 }
 
@@ -142,9 +141,9 @@ func (s *CartService) cartToResponse(ctx context.Context, cartItems []types.Cart
 	cartResponse := new(types.CartResponse)
 	cartResponse.Items = make([]types.CartItemResponse, 0)
 	for _, item := range cartItems {
-		product, err := s.productRepo.GetByID(ctx, item.ProductID)
+		product, err := s.productService.GetByID(ctx, item.ProductID)
 		if err != nil {
-			return nil, types.NewAPIError(http.StatusBadRequest, fmt.Errorf("product %d is not available in the store, please refresh your cart", item.ProductID))
+			return nil, err
 		}
 
 		itemResp := types.CartItemResponse{

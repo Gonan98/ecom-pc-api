@@ -8,7 +8,7 @@ import (
 
 type envConfig struct {
 	Port          string
-	DatabaseUrl   string
+	DatabaseURL   string
 	JWTSecret     string
 	JWTExpiration string
 	AdminEmail    string
@@ -19,16 +19,16 @@ func initConfig() envConfig {
 	godotenv.Load()
 
 	return envConfig{
-		Port:          getEnv("PORT", "8080"),
-		DatabaseUrl:   getEnv("DATABASE_URL", "postgres://postgres:MyPostgrespassword@localhost:5432/ecomdb"),
-		JWTSecret:     getEnv("JWT_SECRET", "mysecretpassword"),
-		JWTExpiration: getEnv("JWT_EXPIRATION", "24h"),
-		AdminEmail:    getEnv("ADMIN_EMAIL", "admin@example.com"),
-		AdminPassword: getEnv("ADMIN_PASSWORD", "admin12345"),
+		Port:          getEnvOrDefault("PORT", "8080"),
+		DatabaseURL:   os.Getenv("DATABASE_URL"),
+		JWTSecret:     os.Getenv("JWT_SECRET"),
+		JWTExpiration: os.Getenv("JWT_EXPIRATION"),
+		AdminEmail:    os.Getenv("ADMIN_EMAIL"),
+		AdminPassword: os.Getenv("ADMIN_PASSWORD"),
 	}
 }
 
-func getEnv(key, fallback string) string {
+func getEnvOrDefault(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
 	}

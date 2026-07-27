@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gonan98/ecom-pc-api/internal/types"
+	"github.com/jackc/pgx/v5"
 )
 
 type RoleRepository struct {
@@ -14,6 +15,12 @@ type RoleRepository struct {
 func NewRoleRepository(db DBTX) *RoleRepository {
 	return &RoleRepository{
 		db: db,
+	}
+}
+
+func (r *RoleRepository) WithTx(tx pgx.Tx) *RoleRepository {
+	return &RoleRepository{
+		db: tx,
 	}
 }
 

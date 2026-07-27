@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	pool, err := database.NewPostgres(config.Envs.DatabaseUrl)
+	pool, err := database.NewPostgres(config.Envs.DatabaseURL)
 	if err != nil {
 		log.Fatal("Failed to connect to postgres")
 	}

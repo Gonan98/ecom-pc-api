@@ -43,13 +43,14 @@ func (s *AuthService) Register(ctx context.Context, req *types.CreateUserRequest
 
 		userTx := s.userRepo.WithTx(tx)
 		cartTx := s.cartRepo.WithTx(tx)
+		roleTx := s.roleRepo.WithTx(tx)
 
-		role, err := s.roleRepo.GetByName(ctx, types.RoleNameCustomer)
+		role, err := roleTx.GetByName(ctx, types.RoleNameCustomer)
 		if err != nil {
 			return err
 		}
 
-		ok, err := s.userRepo.ExistByEmail(ctx, req.Email)
+		ok, err := userTx.ExistByEmail(ctx, req.Email)
 		if err != nil {
 			return err
 		}

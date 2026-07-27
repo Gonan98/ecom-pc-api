@@ -2,25 +2,25 @@ package service
 
 import (
 	"context"
-	"fmt"
-	"net/http"
+	"errors"
 
 	repo "github.com/gonan98/ecom-pc-api/internal/repository"
 	"github.com/gonan98/ecom-pc-api/internal/types"
 	"github.com/gonan98/ecom-pc-api/internal/util"
+	"github.com/jackc/pgx/v5"
 )
 
 type ProductService struct {
-	productRepo  *repo.ProductRepository
-	brandRepo    *repo.BrandRepository
-	categoryRepo *repo.CategoryRepository
+	productRepo     *repo.ProductRepository
+	brandService    *BrandService
+	categoryService *CategoryService
 }
 
-func NewProductService(productRepo *repo.ProductRepository, brandRepo *repo.BrandRepository, categoryRepo *repo.CategoryRepository) *ProductService {
+func NewProductService(productRepo *repo.ProductRepository, brandService *BrandService, categoryService *CategoryService) *ProductService {
 	return &ProductService{
-		productRepo:  productRepo,
-		brandRepo:    brandRepo,
-		categoryRepo: categoryRepo,
+		productRepo:     productRepo,
+		brandService:    brandService,
+		categoryService: categoryService,
 	}
 }
 
@@ -30,34 +30,26 @@ func (s *ProductService) GetAll(ctx context.Context) ([]types.Product, error) {
 
 func (s *ProductService) GetByID(ctx context.Context, ID int) (*types.Product, error) {
 	product, err := s.productRepo.GetByID(ctx, ID)
-	if err != nil {
-		return nil, err
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, util.ResourceNotFound("product", ID)
 	}
 
-	if product.ID == 0 {
-		return nil, types.NewAPIError(http.StatusNotFound, fmt.Errorf("Product with ID = %d not found", ID))
+	if err != nil {
+		return nil, err
 	}
 
 	return product, nil
 }
 
 func (s *ProductService) Create(ctx context.Context, req *types.CreateProductRequest) error {
-	brand, err := s.brandRepo.GetByID(ctx, req.BrandID)
+	_, err := s.brandService.GetByID(ctx, req.BrandID)
 	if err != nil {
 		return err
 	}
 
-	if brand.ID == 0 {
-		return util.ResourceNotFound("brand", req.BrandID)
-	}
-
-	category, err := s.categoryRepo.GetByID(ctx, req.CategoryID)
+	_, err = s.categoryService.GetByID(ctx, req.CategoryID)
 	if err != nil {
 		return err
-	}
-
-	if category.ID == 0 {
-		return util.ResourceNotFound("category", req.CategoryID)
 	}
 
 	product := &types.Product{
@@ -74,22 +66,14 @@ func (s *ProductService) Create(ctx context.Context, req *types.CreateProductReq
 }
 
 func (s *ProductService) Update(ctx context.Context, req *types.UpdateProductRequest, ID int) error {
-	brand, err := s.brandRepo.GetByID(ctx, req.BrandID)
+	_, err := s.brandService.GetByID(ctx, req.BrandID)
 	if err != nil {
 		return err
 	}
 
-	if brand.ID == 0 {
-		return util.ResourceNotFound("brand", req.BrandID)
-	}
-
-	category, err := s.categoryRepo.GetByID(ctx, req.CategoryID)
+	_, err = s.categoryService.GetByID(ctx, req.CategoryID)
 	if err != nil {
 		return err
-	}
-
-	if category.ID == 0 {
-		return util.ResourceNotFound("category", req.CategoryID)
 	}
 
 	product, err := s.GetByID(ctx, ID)

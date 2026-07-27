@@ -44,12 +44,12 @@ func (s *OrderService) Create(ctx context.Context) error {
 			return err
 		}
 
-		cart, err := s.cartRepo.GetByUser(ctx, userID)
+		cart, err := cartTx.GetByUser(ctx, userID)
 		if err != nil {
 			return err
 		}
 
-		cartItems, err := s.cartRepo.GetItemsByUser(ctx, userID)
+		cartItems, err := cartTx.GetItemsByUser(ctx, userID)
 		if err != nil {
 			return err
 		}
@@ -63,7 +63,7 @@ func (s *OrderService) Create(ctx context.Context) error {
 
 		// Calculate total from cart and decrease stock
 		for _, item := range cartItems {
-			product, err := s.productRepo.GetByID(ctx, item.ProductID)
+			product, err := productTx.GetByID(ctx, item.ProductID)
 			if err != nil {
 				return err
 			}

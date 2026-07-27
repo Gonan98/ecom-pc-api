@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	db, err := database.NewPostgres(config.Envs.DatabaseUrl)
+	db, err := database.NewPostgres(config.Envs.DatabaseURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to Postgres: %v", err)
 	}
