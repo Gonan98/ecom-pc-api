@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gonan98/ecom-pc-api/internal/database"
 	"github.com/gonan98/ecom-pc-api/internal/types"
 	"github.com/jackc/pgx/v5"
 )
 
 type OrderRepository struct {
-	// db *pgxpool.Pool
-	db DBTX
+	db database.DBTX
 }
 
-func NewOrderRepository(db DBTX) *OrderRepository {
+func NewOrderRepository(db database.DBTX) *OrderRepository {
 	return &OrderRepository{
 		db: db,
 	}
@@ -146,7 +146,7 @@ func (r *OrderRepository) GetDetailsByOrderAndUser(ctx context.Context, userID i
 	return details, nil
 }
 
-func (r *OrderRepository) UpdateStatus(ctx context.Context, status string, orderID int) error {
+func (r *OrderRepository) UpdateStatus(ctx context.Context, status types.OrderStatus, orderID int) error {
 	query := "UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2"
 	_, err := r.db.Exec(ctx, query, status, orderID)
 	return err

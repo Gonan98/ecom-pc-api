@@ -4,15 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gonan98/ecom-pc-api/internal/database"
 	"github.com/gonan98/ecom-pc-api/internal/types"
 	"github.com/jackc/pgx/v5"
 )
 
 type RoleRepository struct {
-	db DBTX
+	db database.DBTX
 }
 
-func NewRoleRepository(db DBTX) *RoleRepository {
+func NewRoleRepository(db database.DBTX) *RoleRepository {
 	return &RoleRepository{
 		db: db,
 	}

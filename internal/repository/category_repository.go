@@ -4,17 +4,25 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gonan98/ecom-pc-api/internal/database"
 	"github.com/gonan98/ecom-pc-api/internal/types"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type CategoryRepository struct {
-	db DBTX
+	db database.DBTX
 }
 
 func NewCategoryRepository(db *pgxpool.Pool) *CategoryRepository {
 	return &CategoryRepository{
 		db: db,
+	}
+}
+
+func (r *CategoryRepository) WithTx(tx pgx.Tx) *CategoryRepository {
+	return &CategoryRepository{
+		db: tx,
 	}
 }
 

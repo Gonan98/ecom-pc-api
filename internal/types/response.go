@@ -34,6 +34,7 @@ type CartItemResponse struct {
 	ProductName string  `json:"productName"`
 	UnitPrice   float64 `json:"unitPrice"`
 	Quantity    int     `json:"quantity"`
+	Discount    float64 `json:"discount"`
 	Subtotal    float64 `json:"subtotal"`
 }
 

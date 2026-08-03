@@ -1,6 +1,8 @@
 package types
 
-import "time"
+import (
+	"time"
+)
 
 type RoleName string
 
@@ -81,7 +83,8 @@ type Cart struct {
 }
 
 type CartItem struct {
-	CartID    int `json:"cartId"`
-	ProductID int `json:"productId"`
-	Quantity  int `json:"quantity"`
+	CartID    int     `json:"cartId"`
+	ProductID int     `json:"productId"`
+	Quantity  int     `json:"quantity"`
+	Discount  float64 `json:"discount"`
 }

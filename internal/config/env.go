@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -20,12 +21,22 @@ func initConfig() envConfig {
 
 	return envConfig{
 		Port:          getEnvOrDefault("PORT", "8080"),
-		DatabaseURL:   os.Getenv("DATABASE_URL"),
-		JWTSecret:     os.Getenv("JWT_SECRET"),
-		JWTExpiration: os.Getenv("JWT_EXPIRATION"),
-		AdminEmail:    os.Getenv("ADMIN_EMAIL"),
-		AdminPassword: os.Getenv("ADMIN_PASSWORD"),
+		DatabaseURL:   getEnv("DATABASE_URL"),
+		JWTSecret:     getEnv("JWT_SECRET"),
+		JWTExpiration: getEnv("JWT_EXPIRATION"),
+		AdminEmail:    getEnv("ADMIN_EMAIL"),
+		AdminPassword: getEnv("ADMIN_PASSWORD"),
 	}
+}
+
+func getEnv(key string) string {
+	value, ok := os.LookupEnv(key)
+
+	if !ok {
+		log.Fatalf("env variable not found: %s", key)
+	}
+
+	return value
 }
 
 func getEnvOrDefault(key, fallback string) string {

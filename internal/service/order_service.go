@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/gonan98/ecom-pc-api/internal/database"
 	repo "github.com/gonan98/ecom-pc-api/internal/repository"
 	"github.com/gonan98/ecom-pc-api/internal/types"
+	"github.com/gonan98/ecom-pc-api/internal/util"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -69,11 +71,11 @@ func (s *OrderService) Create(ctx context.Context) error {
 			}
 
 			if item.Quantity > product.Stock {
-				return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("Product %s is not available in the quantity requested", product.Name))
+				return util.NotAvailableStock(product.Name)
 			}
 
 			prices[item.ProductID] = product.Price
-			total += product.Price * float64(item.Quantity)
+			total += product.Price * float64(item.Quantity) * (1 - item.Discount)
 			if err := productTx.DecreaseStock(ctx, item.Quantity, product.ID); err != nil {
 				return err
 			}
@@ -98,7 +100,7 @@ func (s *OrderService) Create(ctx context.Context) error {
 				ProductID: item.ProductID,
 				Quantity:  item.Quantity,
 				UnitPrice: price,
-				Discount:  0,
+				Discount:  item.Discount,
 			})
 
 			if err != nil {
@@ -160,24 +162,38 @@ func (s *OrderService) GetOrderItems(ctx context.Context, orderID int) ([]types.
 }
 
 func (s *OrderService) UpdateStatus(ctx context.Context, orderID int, status types.OrderStatus) error {
-	order, err := s.orderRepo.GetByID(ctx, orderID)
-	if err != nil {
-		return err
-	}
+	return s.txManager.RunInTx(ctx, func(tx pgx.Tx) error {
+		orderTx := s.orderRepo.WithTx(tx)
+		productTx := s.productRepo.WithTx(tx)
 
-	if order.ID == 0 {
-		return types.NewAPIError(http.StatusNotFound, fmt.Errorf("order with ID=%d does not exist", orderID))
-	}
+		order, err := orderTx.GetByID(ctx, orderID)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return types.NewAPIError(http.StatusNotFound, fmt.Errorf("order with ID=%d does not exist", orderID))
+		}
 
-	valid := (order.Status == types.OrderStatusPending && (status == types.OrderStatusPaid || status == types.OrderStatusCancelled)) ||
-		(order.Status == types.OrderStatusPaid && (status == types.OrderStatusShipped || status == types.OrderStatusCancelled)) ||
-		(order.Status == types.OrderStatusShipped && status == types.OrderStatusDelivered)
+		if err != nil {
+			return err
+		}
 
-	if !valid {
-		return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("cannot transition order status from %s to %s", order.Status, status))
-	}
+		if !s.isValidTransition(order.Status, status) {
+			return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("cannot transition order status from %s to %s", order.Status, status))
+		}
 
-	return s.orderRepo.UpdateStatus(ctx, string(status), orderID)
+		if status == types.OrderStatusCancelled {
+			details, err := orderTx.GetDetailsByOrder(ctx, orderID)
+			if err != nil {
+				return err
+			}
+
+			for _, d := range details {
+				if err := productTx.IncreaseStock(ctx, d.Quantity, d.ProductID); err != nil {
+					return err
+				}
+			}
+		}
+
+		return orderTx.UpdateStatus(ctx, status, orderID)
+	})
 }
 
 func (s *OrderService) orderDetailToResponse(ctx context.Context, details []types.OrderDetail) ([]types.OrderDetailResponse, error) {
@@ -200,4 +216,10 @@ func (s *OrderService) orderDetailToResponse(ctx context.Context, details []type
 	}
 
 	return response, nil
+}
+
+func (s *OrderService) isValidTransition(currentStatus types.OrderStatus, newStatus types.OrderStatus) bool {
+	return (currentStatus == types.OrderStatusPending && (newStatus == types.OrderStatusPaid || newStatus == types.OrderStatusCancelled)) ||
+		(currentStatus == types.OrderStatusPaid && (newStatus == types.OrderStatusShipped || newStatus == types.OrderStatusCancelled)) ||
+		(currentStatus == types.OrderStatusShipped && newStatus == types.OrderStatusDelivered)
 }

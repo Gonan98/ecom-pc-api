@@ -4,15 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gonan98/ecom-pc-api/internal/database"
 	"github.com/gonan98/ecom-pc-api/internal/types"
 	"github.com/jackc/pgx/v5"
 )
 
 type UserRepository struct {
-	db DBTX
+	db database.DBTX
 }
 
-func NewUserRepository(db DBTX) *UserRepository {
+func NewUserRepository(db database.DBTX) *UserRepository {
 	return &UserRepository{db: db}
 }
 

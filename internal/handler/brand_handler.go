@@ -68,7 +68,7 @@ func (h *BrandHandler) createBrand(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 
-	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Message: "New brand created"})
+	return writeResponse(w, types.APIResponse{Code: http.StatusCreated, Message: "New brand created"})
 }
 
 func (h *BrandHandler) updateBrand(w http.ResponseWriter, r *http.Request) error {
@@ -77,9 +77,9 @@ func (h *BrandHandler) updateBrand(w http.ResponseWriter, r *http.Request) error
 		return util.InvalidParamID("id")
 	}
 
-	var req *types.UpdateBrandRequest
+	var req types.UpdateBrandRequest
 
-	if err := readJSON(r, req); err != nil {
+	if err := readJSON(r, &req); err != nil {
 		return errInvalidJSON
 	}
 
@@ -87,7 +87,7 @@ func (h *BrandHandler) updateBrand(w http.ResponseWriter, r *http.Request) error
 		return util.InvalidRequest(err)
 	}
 
-	if err := h.brandService.Update(r.Context(), req, ID); err != nil {
+	if err := h.brandService.Update(r.Context(), &req, ID); err != nil {
 		return err
 	}
 
@@ -104,5 +104,6 @@ func (h *BrandHandler) deleteBrand(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 
-	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Message: "Brand deleted"})
+	w.WriteHeader(http.StatusNoContent)
+	return nil
 }

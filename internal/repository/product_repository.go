@@ -4,15 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gonan98/ecom-pc-api/internal/database"
 	"github.com/gonan98/ecom-pc-api/internal/types"
 	"github.com/jackc/pgx/v5"
 )
 
 type ProductRepository struct {
-	db DBTX
+	db database.DBTX
 }
 
-func NewProductRepository(db DBTX) *ProductRepository {
+func NewProductRepository(db database.DBTX) *ProductRepository {
 	return &ProductRepository{
 		db: db,
 	}

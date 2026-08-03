@@ -4,14 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gonan98/ecom-pc-api/internal/database"
 	"github.com/gonan98/ecom-pc-api/internal/types"
 )
 
 type BrandRepository struct {
-	db DBTX
+	db database.DBTX
 }
 
-func NewBrandRepository(db DBTX) *BrandRepository {
+func NewBrandRepository(db database.DBTX) *BrandRepository {
 	return &BrandRepository{
 		db: db,
 	}

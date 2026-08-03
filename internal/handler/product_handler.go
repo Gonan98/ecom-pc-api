@@ -22,26 +22,26 @@ func NewProductHandler(service *service.ProductService) *ProductHandler {
 }
 
 func (h *ProductHandler) Routes(r chi.Router) {
-	r.Get("/", httpHandler(h.getBrands))
-	r.Get("/{id}", httpHandler(h.getBrandByID))
+	r.Get("/", httpHandler(h.getProducts))
+	r.Get("/{id}", httpHandler(h.getProductByID))
 
 	r.With(
 		middleware.JWTMiddleware,
 		middleware.AdminMiddleware,
-	).Post("/", httpHandler(h.createBrand))
+	).Post("/", httpHandler(h.createProduct))
 
 	r.With(
 		middleware.JWTMiddleware,
 		middleware.AdminMiddleware,
-	).Put("/{id}", httpHandler(h.updateBrand))
+	).Put("/{id}", httpHandler(h.updateProduct))
 
 	r.With(
 		middleware.JWTMiddleware,
 		middleware.AdminMiddleware,
-	).Delete("/{id}", httpHandler(h.deleteBrand))
+	).Delete("/{id}", httpHandler(h.deleteProduct))
 }
 
-func (h *ProductHandler) getBrands(w http.ResponseWriter, r *http.Request) error {
+func (h *ProductHandler) getProducts(w http.ResponseWriter, r *http.Request) error {
 	products, err := h.productService.GetAll(r.Context())
 	if err != nil {
 		return err
@@ -50,7 +50,7 @@ func (h *ProductHandler) getBrands(w http.ResponseWriter, r *http.Request) error
 	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: products})
 }
 
-func (h *ProductHandler) getBrandByID(w http.ResponseWriter, r *http.Request) error {
+func (h *ProductHandler) getProductByID(w http.ResponseWriter, r *http.Request) error {
 	ID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		return util.InvalidParamID("id")
@@ -64,7 +64,7 @@ func (h *ProductHandler) getBrandByID(w http.ResponseWriter, r *http.Request) er
 	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Data: product})
 }
 
-func (h *ProductHandler) createBrand(w http.ResponseWriter, r *http.Request) error {
+func (h *ProductHandler) createProduct(w http.ResponseWriter, r *http.Request) error {
 	var req types.CreateProductRequest
 
 	if err := readJSON(r, &req); err != nil {
@@ -82,7 +82,7 @@ func (h *ProductHandler) createBrand(w http.ResponseWriter, r *http.Request) err
 	return writeResponse(w, types.NewAPIResponse(http.StatusCreated, "New product created"))
 }
 
-func (h *ProductHandler) updateBrand(w http.ResponseWriter, r *http.Request) error {
+func (h *ProductHandler) updateProduct(w http.ResponseWriter, r *http.Request) error {
 	ID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		return util.InvalidParamID("id")
@@ -91,7 +91,7 @@ func (h *ProductHandler) updateBrand(w http.ResponseWriter, r *http.Request) err
 	var req types.UpdateProductRequest
 
 	if err := readJSON(r, &req); err != nil {
-		return err
+		return errInvalidJSON
 	}
 
 	if err := validate.Struct(req); err != nil {
@@ -102,10 +102,10 @@ func (h *ProductHandler) updateBrand(w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	return writeResponse(w, types.NewAPIResponse(http.StatusCreated, "Product updated"))
+	return writeResponse(w, types.NewAPIResponse(http.StatusOK, "Product updated"))
 }
 
-func (h *ProductHandler) deleteBrand(w http.ResponseWriter, r *http.Request) error {
+func (h *ProductHandler) deleteProduct(w http.ResponseWriter, r *http.Request) error {
 	ID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		return util.InvalidParamID("id")
@@ -115,5 +115,6 @@ func (h *ProductHandler) deleteBrand(w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	return writeResponse(w, types.NewAPIResponse(http.StatusCreated, "Product deleted"))
+	w.WriteHeader(http.StatusNoContent)
+	return nil
 }

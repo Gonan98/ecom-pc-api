@@ -49,3 +49,7 @@ func InvalidParamID(paramID string) types.APIError {
 func ResourceNotFound(resource string, ID int) types.APIError {
 	return types.NewAPIError(http.StatusNotFound, fmt.Errorf("%s with ID %d does not exist", resource, ID))
 }
+
+func NotAvailableStock(productName string) types.APIError {
+	return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("Product %s is not available in the quantity requested", productName))
+}

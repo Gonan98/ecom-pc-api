@@ -4,15 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gonan98/ecom-pc-api/internal/database"
 	"github.com/gonan98/ecom-pc-api/internal/types"
 	"github.com/jackc/pgx/v5"
 )
 
 type CartRepository struct {
-	db DBTX
+	db database.DBTX
 }
 
-func NewCartRepository(db DBTX) *CartRepository {
+func NewCartRepository(db database.DBTX) *CartRepository {
 	return &CartRepository{
 		db: db,
 	}
@@ -31,8 +32,8 @@ func (r *CartRepository) Create(ctx context.Context, userID int) error {
 }
 
 func (r *CartRepository) CreateItem(ctx context.Context, item *types.CartItem) error {
-	q := "INSERT INTO shopping_cart_items VALUES ($1, $2, $3)"
-	_, err := r.db.Exec(ctx, q, item.CartID, item.ProductID, item.Quantity)
+	q := "INSERT INTO shopping_cart_items (cart_id, product_id, quantity, discount) VALUES ($1, $2, $3, $4)"
+	_, err := r.db.Exec(ctx, q, item.CartID, item.ProductID, item.Quantity, item.Discount)
 	return err
 }
 
@@ -49,7 +50,7 @@ func (r *CartRepository) GetByUser(ctx context.Context, userID int) (*types.Cart
 }
 
 func (r *CartRepository) GetItemsByUser(ctx context.Context, userID int) ([]types.CartItem, error) {
-	q := "SELECT ci.cart_id, ci.product_id, ci.quantity FROM shopping_cart_items ci JOIN shopping_carts c ON ci.cart_id = c.id WHERE c.user_id = $1"
+	q := "SELECT ci.cart_id, ci.product_id, ci.quantity, ci.discount FROM shopping_cart_items ci JOIN shopping_carts c ON ci.cart_id = c.id WHERE c.user_id = $1"
 	rows, err := r.db.Query(ctx, q, userID)
 	if err != nil {
 		return nil, err
@@ -59,7 +60,7 @@ func (r *CartRepository) GetItemsByUser(ctx context.Context, userID int) ([]type
 	items := make([]types.CartItem, 0)
 	for rows.Next() {
 		var item types.CartItem
-		if err := rows.Scan(&item.CartID, &item.ProductID, &item.Quantity); err != nil {
+		if err := rows.Scan(&item.CartID, &item.ProductID, &item.Quantity, &item.Discount); err != nil {
 			return nil, err
 		}
 

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -54,7 +53,7 @@ func (h *CategoryHandler) getCategories(w http.ResponseWriter, r *http.Request) 
 func (h *CategoryHandler) getCategoryByID(w http.ResponseWriter, r *http.Request) error {
 	ID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		return types.NewAPIError(http.StatusBadRequest, err)
+		return util.InvalidParamID("id")
 	}
 
 	category, err := h.categoryService.GetByID(r.Context(), ID)
@@ -66,9 +65,9 @@ func (h *CategoryHandler) getCategoryByID(w http.ResponseWriter, r *http.Request
 }
 
 func (h *CategoryHandler) createCategory(w http.ResponseWriter, r *http.Request) error {
-	req := new(types.CreateCategoryRequest)
+	var req types.CreateCategoryRequest
 
-	if err := readJSON(r, req); err != nil {
+	if err := readJSON(r, &req); err != nil {
 		return errInvalidJSON
 	}
 
@@ -76,11 +75,11 @@ func (h *CategoryHandler) createCategory(w http.ResponseWriter, r *http.Request)
 		return util.InvalidRequest(err)
 	}
 
-	if err := h.categoryService.Create(r.Context(), req); err != nil {
+	if err := h.categoryService.Create(r.Context(), &req); err != nil {
 		return err
 	}
 
-	return writeResponse(w, types.APIResponse{Code: http.StatusCreated, Message: "Category created"})
+	return writeResponse(w, types.NewAPIResponse(http.StatusCreated, "Category created"))
 }
 
 func (h *CategoryHandler) updateCategory(w http.ResponseWriter, r *http.Request) error {
@@ -103,7 +102,7 @@ func (h *CategoryHandler) updateCategory(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Message: fmt.Sprintf("Category with ID = %d updated", ID)})
+	return writeResponse(w, types.NewAPIResponse(http.StatusOK, "Category updated"))
 }
 
 func (h *CategoryHandler) deleteCategory(w http.ResponseWriter, r *http.Request) error {
@@ -116,5 +115,6 @@ func (h *CategoryHandler) deleteCategory(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	return writeResponse(w, types.APIResponse{Code: http.StatusOK, Message: fmt.Sprintf("Category with ID = %d deleted", ID)})
+	w.WriteHeader(http.StatusNoContent)
+	return nil
 }

@@ -7,6 +7,8 @@ import (
 
 	repo "github.com/gonan98/ecom-pc-api/internal/repository"
 	"github.com/gonan98/ecom-pc-api/internal/types"
+	"github.com/gonan98/ecom-pc-api/internal/util"
+	"github.com/jackc/pgx/v5"
 )
 
 var (
@@ -35,8 +37,14 @@ func (s *CartService) AddItem(ctx context.Context, cartItem *types.CartItem) err
 	}
 
 	cart, err := s.cartRepo.GetByUser(ctx, userID)
+
 	if err != nil {
 		return err
+	}
+
+	_, err = s.productService.GetByID(ctx, cartItem.ProductID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return util.ResourceNotFound("prodcut", cartItem.ProductID)
 	}
 
 	ok, err := s.cartRepo.ExistsItemInCartByProductID(ctx, cart.ID, cartItem.ProductID)
@@ -61,6 +69,7 @@ func (s *CartService) GetCart(ctx context.Context) (*types.CartResponse, error) 
 	}
 
 	cartItems, err := s.cartRepo.GetItemsByUser(ctx, userID)
+
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +160,8 @@ func (s *CartService) cartToResponse(ctx context.Context, cartItems []types.Cart
 			ProductName: product.Name,
 			Quantity:    item.Quantity,
 			UnitPrice:   product.Price,
-			Subtotal:    float64(item.Quantity) * product.Price,
+			Discount:    item.Discount,
+			Subtotal:    float64(item.Quantity) * product.Price * (1 - item.Discount),
 		}
 
 		cartResponse.Total += itemResp.Subtotal
