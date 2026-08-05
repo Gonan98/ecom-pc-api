@@ -65,7 +65,7 @@ func (s *OrderService) Create(ctx context.Context) error {
 
 		// Calculate total from cart and decrease stock
 		for _, item := range cartItems {
-			product, err := productTx.GetByID(ctx, item.ProductID)
+			product, err := productTx.GetByIDForUpdate(ctx, item.ProductID)
 			if err != nil {
 				return err
 			}
@@ -77,6 +77,10 @@ func (s *OrderService) Create(ctx context.Context) error {
 			prices[item.ProductID] = product.Price
 			total += product.Price * float64(item.Quantity) * (1 - item.Discount)
 			if err := productTx.DecreaseStock(ctx, item.Quantity, product.ID); err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					return util.NotAvailableStock(product.Name)
+				}
+
 				return err
 			}
 		}
