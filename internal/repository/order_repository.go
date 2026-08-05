@@ -122,21 +122,55 @@ func (r *OrderRepository) GetDetailsByOrder(ctx context.Context, orderID int) ([
 	return details, nil
 }
 
-func (r *OrderRepository) GetDetailsByOrderAndUser(ctx context.Context, userID int, orderID int) ([]types.OrderDetail, error) {
-	query := "SELECT od.order_id, od.product_id, od.quantity, od.unit_price, od.discount FROM order_details od JOIN orders o ON o.id = od.order_id WHERE o.user_id = $1 AND od.order_id = $2"
-	rows, err := r.db.Query(ctx, query, userID, orderID)
+func (r *OrderRepository) GetDetailsWithProductByOrderAndUser(ctx context.Context, orderID int, userID int) ([]DetailWithProduct, error) {
+	q := `
+		SELECT d.order_id, p.id, p.name, d.unit_price, d.quantity, d.discount FROM order_details d
+			JOIN orders o ON o.id = d.order_id
+			JOIN products p ON p.id = d.product_id
+			WHERE o.id = $1 AND o.user_id = $2
+	`
+	rows, err := r.db.Query(ctx, q, orderID, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	details := make([]types.OrderDetail, 0)
+	details := make([]DetailWithProduct, 0)
 	for rows.Next() {
-		var od types.OrderDetail
-		if err := rows.Scan(&od.OrderID, &od.ProductID, &od.Quantity, &od.UnitPrice, &od.Discount); err != nil {
+		var d DetailWithProduct
+		if err := rows.Scan(&d.OrderID, &d.ProductID, &d.ProductName, &d.UnitPrice, &d.Quantity, &d.Discount); err != nil {
 			return nil, err
 		}
-		details = append(details, od)
+		details = append(details, d)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return details, nil
+}
+
+func (r *OrderRepository) GetDetailsWithProductByOrder(ctx context.Context, orderID int) ([]DetailWithProduct, error) {
+	q := `
+		SELECT d.order_id, p.id, p.name, d.unit_price, d.quantity, d.discount FROM order_details d
+			JOIN orders o ON o.id = d.order_id
+			JOIN products p ON p.id = d.product_id
+			WHERE o.id = $1
+	`
+	rows, err := r.db.Query(ctx, q, orderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	details := make([]DetailWithProduct, 0)
+	for rows.Next() {
+		var d DetailWithProduct
+		if err := rows.Scan(&d.OrderID, &d.ProductID, &d.ProductName, &d.UnitPrice, &d.Quantity, &d.Discount); err != nil {
+			return nil, err
+		}
+		details = append(details, d)
 	}
 
 	if err := rows.Err(); err != nil {

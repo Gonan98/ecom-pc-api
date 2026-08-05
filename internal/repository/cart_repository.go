@@ -74,6 +74,36 @@ func (r *CartRepository) GetItemsByUser(ctx context.Context, userID int) ([]type
 	return items, nil
 }
 
+func (r *CartRepository) GetItemsWithProductsByUser(ctx context.Context, userID int) ([]CartItemWithProduct, error) {
+	q := `
+		SELECT ci.cart_id, ci.product_id, p.name, p.price, ci.quantity, ci.discount FROM shopping_cart_items ci 
+			JOIN shopping_carts c ON c.id = ci.cart_id
+			JOIN products p ON p.id = ci.product_id
+			WHERE c.user_id = $1
+	`
+	rows, err := r.db.Query(ctx, q, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := make([]CartItemWithProduct, 0)
+	for rows.Next() {
+		var item CartItemWithProduct
+		if err := rows.Scan(&item.CartID, &item.ProductID, &item.ProductName, &item.UnitPrice, &item.Quantity, &item.Discount); err != nil {
+			return nil, err
+		}
+
+		items = append(items, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
 func (r *CartRepository) ExistsItemsInCart(ctx context.Context, cartID int) (bool, error) {
 	result := false
 	q := "SELECT EXISTS (SELECT 1 FROM shopping_cart_items WHERE cart_id = $1)"
@@ -105,13 +135,3 @@ func (r *CartRepository) DeleteItemsByProductID(ctx context.Context, cartID int,
 	_, err := r.db.Exec(ctx, q, cartID, productID)
 	return err
 }
-
-// query := SELECT
-// 			c.product_id,
-// 			p.name,
-// 			p.price,
-// 			ci.quantity
-// 		FROM shopping_carts c
-// 		JOIN shopping_cart_items ci ON ci.cart_id = c.id
-// 		JOIN products p ON p.id = ci.product_id
-// 		WHERE c.user_id = $1

@@ -7,8 +7,6 @@ import (
 
 	repo "github.com/gonan98/ecom-pc-api/internal/repository"
 	"github.com/gonan98/ecom-pc-api/internal/types"
-	"github.com/gonan98/ecom-pc-api/internal/util"
-	"github.com/jackc/pgx/v5"
 )
 
 var (
@@ -43,8 +41,8 @@ func (s *CartService) AddItem(ctx context.Context, cartItem *types.CartItem) err
 	}
 
 	_, err = s.productService.GetByID(ctx, cartItem.ProductID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return util.ResourceNotFound("prodcut", cartItem.ProductID)
+	if err != nil {
+		return err
 	}
 
 	ok, err := s.cartRepo.ExistsItemInCartByProductID(ctx, cart.ID, cartItem.ProductID)
@@ -68,13 +66,13 @@ func (s *CartService) GetCart(ctx context.Context) (*types.CartResponse, error) 
 		return nil, err
 	}
 
-	cartItems, err := s.cartRepo.GetItemsByUser(ctx, userID)
+	cartItems, err := s.cartRepo.GetItemsWithProductsByUser(ctx, userID)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return s.cartToResponse(ctx, cartItems)
+	return s.cartToResponse(cartItems), nil
 }
 
 func (s *CartService) DeleteItems(ctx context.Context) error {
@@ -146,27 +144,25 @@ func (s *CartService) UpdateItemQuantity(ctx context.Context, productID int, qua
 	return s.cartRepo.UpdateItemQuantity(ctx, cart.ID, productID, quantity)
 }
 
-func (s *CartService) cartToResponse(ctx context.Context, cartItems []types.CartItem) (*types.CartResponse, error) {
-	cartResponse := new(types.CartResponse)
-	cartResponse.Items = make([]types.CartItemResponse, 0)
-	for _, item := range cartItems {
-		product, err := s.productService.GetByID(ctx, item.ProductID)
-		if err != nil {
-			return nil, err
-		}
-
-		itemResp := types.CartItemResponse{
-			ProductID:   product.ID,
-			ProductName: product.Name,
-			Quantity:    item.Quantity,
-			UnitPrice:   product.Price,
-			Discount:    item.Discount,
-			Subtotal:    float64(item.Quantity) * product.Price * (1 - item.Discount),
-		}
-
-		cartResponse.Total += itemResp.Subtotal
-		cartResponse.Items = append(cartResponse.Items, itemResp)
+func (s *CartService) cartToResponse(items []repo.CartItemWithProduct) *types.CartResponse {
+	resp := types.CartResponse{
+		Total: 0,
+		Items: make([]types.CartItemResponse, 0),
 	}
 
-	return cartResponse, nil
+	for _, item := range items {
+		itemResp := types.CartItemResponse{
+			ProductID:   item.ProductID,
+			ProductName: item.ProductName,
+			Quantity:    item.Quantity,
+			UnitPrice:   item.UnitPrice,
+			Discount:    item.Discount,
+			Subtotal:    float64(item.Quantity) * item.UnitPrice * (1 - item.Discount),
+		}
+
+		resp.Total += itemResp.Subtotal
+		resp.Items = append(resp.Items, itemResp)
+	}
+
+	return &resp
 }

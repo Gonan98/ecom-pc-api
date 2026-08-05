@@ -137,7 +137,7 @@ func (s *OrderService) GetOrderItems(ctx context.Context, orderID int) ([]types.
 	}
 
 	if role == types.RoleNameAdmin {
-		details, err := s.orderRepo.GetDetailsByOrder(ctx, orderID)
+		details, err := s.orderRepo.GetDetailsWithProductByOrder(ctx, orderID)
 		if err != nil {
 			return nil, err
 		}
@@ -146,10 +146,10 @@ func (s *OrderService) GetOrderItems(ctx context.Context, orderID int) ([]types.
 			return nil, types.NewAPIError(http.StatusNotFound, fmt.Errorf("order with ID: %d not found", orderID))
 		}
 
-		return s.orderDetailToResponse(ctx, details)
+		return s.orderDetailToResponse(details), nil
 	}
 
-	details, err := s.orderRepo.GetDetailsByOrderAndUser(ctx, userID, orderID)
+	details, err := s.orderRepo.GetDetailsWithProductByOrderAndUser(ctx, orderID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (s *OrderService) GetOrderItems(ctx context.Context, orderID int) ([]types.
 		return nil, types.NewAPIError(http.StatusNotFound, fmt.Errorf("you don't have an order with ID: %d", orderID))
 	}
 
-	return s.orderDetailToResponse(ctx, details)
+	return s.orderDetailToResponse(details), nil
 }
 
 func (s *OrderService) UpdateStatus(ctx context.Context, orderID int, status types.OrderStatus) error {
@@ -176,7 +176,7 @@ func (s *OrderService) UpdateStatus(ctx context.Context, orderID int, status typ
 		}
 
 		if !s.isValidTransition(order.Status, status) {
-			return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("cannot transition order status from %s to %s", order.Status, status))
+			return types.NewAPIError(http.StatusBadRequest, fmt.Errorf("cannot change order status from %s to %s", order.Status, status))
 		}
 
 		if status == types.OrderStatusCancelled {
@@ -196,26 +196,22 @@ func (s *OrderService) UpdateStatus(ctx context.Context, orderID int, status typ
 	})
 }
 
-func (s *OrderService) orderDetailToResponse(ctx context.Context, details []types.OrderDetail) ([]types.OrderDetailResponse, error) {
+func (s *OrderService) orderDetailToResponse(details []repo.DetailWithProduct) []types.OrderDetailResponse {
 	response := make([]types.OrderDetailResponse, 0)
-	for _, od := range details {
-		p, err := s.productRepo.GetByID(ctx, od.ProductID)
-		if err != nil {
-			return nil, err
-		}
+	for _, d := range details {
 
 		dr := types.OrderDetailResponse{
-			ProductID:   od.ProductID,
-			ProductName: p.Name,
-			UnitPrice:   od.UnitPrice,
-			Quantity:    od.Quantity,
-			Discount:    od.Discount,
+			ProductID:   d.ProductID,
+			ProductName: d.ProductName,
+			UnitPrice:   d.UnitPrice,
+			Quantity:    d.Quantity,
+			Discount:    d.Discount,
 		}
 
 		response = append(response, dr)
 	}
 
-	return response, nil
+	return response
 }
 
 func (s *OrderService) isValidTransition(currentStatus types.OrderStatus, newStatus types.OrderStatus) bool {
